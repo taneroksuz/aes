@@ -3,14 +3,14 @@ package aes_wire;
   timeprecision 1ps;
 
   typedef struct packed{
-    logic [0 : 3] Nb;
-    logic [0 : 3] Nk;
-    logic [7 : 0] key [0:31];
-    logic [7 : 0] data_in [0:31];
+    logic [3   : 0] Nb;
+    logic [3   : 0] Nk;
+    logic [255 : 0] key;
+    logic [255 : 0] data_in;
   } aes_in_type;
 
   typedef struct packed{
-    logic [7 : 0] data_out [0:31];
+    logic [255 : 0] data_out;
   } aes_out_type;
 
 endpackage
