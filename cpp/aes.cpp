@@ -352,6 +352,16 @@ uint32_t AES::SubWord(uint32_t word)
 #ifdef DEBUG
 void AES::print_state(uint8_t *state)
 {
+#ifdef LINE
+    for (int j=0; j<this->Nb; j++)
+    {
+        for (int i=0; i<4; i++)
+        {
+            printf("%02x",state[i*this->Nb+j]);
+        }
+    }
+    printf("\n");
+#else
     for (int i=0; i<4; i++)
     {
         for (int j=0; j<this->Nb; j++)
@@ -361,6 +371,7 @@ void AES::print_state(uint8_t *state)
         printf("\n");
     }
     printf("\n");
+#endif
 }
 #else
 void AES::print_state(uint8_t *state)
@@ -427,6 +438,9 @@ void AES::KeyExpansion()
         printf("%08X\n",this->Word[i]);
 #endif
     }
+#ifdef DEBUG
+    printf("\n\n");
+#endif
 }
 
 void AES::Cipher(uint8_t *in,uint8_t *out)
@@ -459,6 +473,9 @@ void AES::Cipher(uint8_t *in,uint8_t *out)
 
     print_state(state);
     copy_out(state,out);
+#ifdef DEBUG
+  printf("\n\n");
+#endif
 }
 
 void AES::InvCipher(uint8_t *in,uint8_t *out)
@@ -491,4 +508,7 @@ void AES::InvCipher(uint8_t *in,uint8_t *out)
 
     print_state(state);
     copy_out(state,out);
+#ifdef DEBUG
+  printf("\n\n");
+#endif
 }
