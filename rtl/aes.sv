@@ -1,7 +1,10 @@
 import aes_wire::*;
+import aes_func::*;
 
 module aes
 (
+  input logic rst,
+  input logic clk,
   input aes_in_type aes_in,
   output aes_out_type aes_out
 );
@@ -12,7 +15,15 @@ module aes
   logic [7 : 0] I_Box [255:0];
   logic [7 : 0] EXP_3 [255:0];
   logic [7 : 0] LN_3 [255:0];
-  logic [7 : 0] Rcon [10:0];
+  logic [7 : 0] Rcon [15:0];
+
+  localparam [1:0] idle = 2'h0;
+  localparam [1:0] key_exp = 2'h1;
+  localparam [1:0] cipher  = 2'h2;
+  localparam [1:0] icipher = 2'h3;
+
+  aes_reg_type r,rin;
+  aes_reg_type v;
 
   initial begin
     S_Box[0]=8'h63; S_Box[1]=8'h7c; S_Box[2]=8'h77; S_Box[3]=8'h7b; S_Box[4]=8'hf2; S_Box[5]=8'h6b; S_Box[6]=8'h6f; S_Box[7]=8'hc5; S_Box[8]=8'h30; S_Box[9]=8'h01; S_Box[10]=8'h67; S_Box[11]=8'h2b; S_Box[12]=8'hfe; S_Box[13]=8'hd7; S_Box[14]=8'hab; S_Box[15]=8'h76;
@@ -83,7 +94,49 @@ module aes
     LN_3[224]=8'h44; LN_3[225]=8'h11; LN_3[226]=8'h92; LN_3[227]=8'hd9; LN_3[228]=8'h23; LN_3[229]=8'h20; LN_3[230]=8'h2e; LN_3[231]=8'h89; LN_3[232]=8'hb4; LN_3[233]=8'h7c; LN_3[234]=8'hb8; LN_3[235]=8'h26; LN_3[236]=8'h77; LN_3[237]=8'h99; LN_3[238]=8'he3; LN_3[239]=8'ha5;
     LN_3[240]=8'h67; LN_3[241]=8'h4a; LN_3[242]=8'hed; LN_3[243]=8'hde; LN_3[244]=8'hc5; LN_3[245]=8'h31; LN_3[246]=8'hfe; LN_3[247]=8'h18; LN_3[248]=8'h0d; LN_3[249]=8'h63; LN_3[250]=8'h8c; LN_3[251]=8'h80; LN_3[252]=8'hc0; LN_3[253]=8'hf7; LN_3[254]=8'h70; LN_3[255]=8'h07;
 
-    Rcon[0]=8'h00; Rcon[1]=8'h01; Rcon[2]=8'h02; Rcon[3]=8'h04; Rcon[4]=8'h08; Rcon[5]=8'h10; Rcon[6]=8'h20; Rcon[7]=8'h40; Rcon[8]=8'h80; Rcon[9]=8'h1b; Rcon[10]=8'h36;
+    Rcon[0]=8'h00; Rcon[1]=8'h01; Rcon[2]=8'h02; Rcon[3]=8'h04; Rcon[4]=8'h08; Rcon[5]=8'h10; Rcon[6]=8'h20; Rcon[7]=8'h40; Rcon[8]=8'h80; Rcon[9]=8'h1b; Rcon[10]=8'h36,; Rcon[11]=8'h6c,; Rcon[12]=8'hd8,; Rcon[13]=8'hab,; Rcon[14]=8'h4d,; Rcon[15]=8'h9a
+  end
+
+  always_comb begin
+
+    v = r;
+
+    if (r.state == idle) begin
+      if (aes_in.enable == 1) begin
+        if (aes_in.func == 0) begin
+          v.Nb = aes_in.data[3:0];
+          v.Nk = aes_in.data[11:8];
+          v.Nr = aes_in.data[19:16];
+          v.state = idle;
+        end else if (aes_in.func == 1) begin
+          v.key = aes_in.data;
+          v.state = key_exp;
+        end else if (aes_in.func == 2) begin
+          v.data = aes_in.data;
+          v.state = cipher;
+        end else if (aes_in.func == 3) begin
+          v.data = aes_in.data;
+          v.state = icipher;
+        end
+      end
+    end else if (r.state == key_exp) begin
+      v.state = idle;
+    end else if (r.state == cipher) begin
+      v.state = idle;
+    end else if (r.state == icipher) begin
+      v.state = idle;
+    end
+
+    rin = v;
+
+  end
+
+  always_ff @(posedge clk) begin
+    if (rst == 0) begin
+      r <= init_aes_reg;
+    end else begin
+      r <= rin;
+    end
   end
 
 endmodule
