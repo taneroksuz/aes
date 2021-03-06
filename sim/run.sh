@@ -27,13 +27,13 @@ cd ${DIR}/sim/work
 start=`date +%s`
 if [ "$5" = 'wave' ]
 then
-	${VERILATOR} --sc -Wno-UNOPTFLAT --trace -trace-max-array 128 --trace-structs -f ${DIR}/sim/files.f --top-module aes --exe ${DIR}/rtl/tb/aes.cpp
-	make -s -j -C obj_dir/ -f Vaes.mk Vaes
-  obj_dir/Vaes $CYCLES dhrystone 2> /dev/null
+  ${VERILATOR} --sc -Wno-UNOPTFLAT --trace -trace-max-array 128 --trace-structs -f ${DIR}/sim/files.f --top-module aes_tb --exe ${DIR}/rtl/aes_tb.cpp -I${DIR}/rtl
+  make -s -j -C obj_dir/ -f Vaes_tb.mk Vaes_tb
+  obj_dir/Vaes_tb $CYCLES 2> /dev/null
 else
-	${VERILATOR} --sc -Wno-UNOPTFLAT -f ${DIR}/sim/files.f --top-module aes --exe ${DIR}/rtl/tb/aes.cpp
-	make -s -j -C obj_dir/ -f Vaes.mk Vaes
-  obj_dir/Vaes $CYCLES 2> /dev/null
+  ${VERILATOR} --sc -Wno-UNOPTFLAT -f ${DIR}/sim/files.f --top-module aes_tb --exe ${DIR}/rtl/aes_tb.cpp -I${DIR}/rtl
+  make -s -j -C obj_dir/ -f Vaes_tb.mk Vaes_tb
+  obj_dir/Vaes_tb $CYCLES 2> /dev/null
 fi
 end=`date +%s`
 echo Execution time was `expr $end - $start` seconds.
