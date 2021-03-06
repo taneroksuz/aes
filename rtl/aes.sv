@@ -17,7 +17,7 @@ module aes
   logic [7 : 0] LN3 [0:255];
   logic [7 : 0] RCon [0:15];
 
-  logic [31 : 0] KExp [0:(Nb*(Nr+1))];
+  logic [31:0] KExp [0:(Nb*(Nr+1)-1)];
 
   localparam [1:0] idle = 2'h0;
   localparam [1:0] kexp = 2'h1;

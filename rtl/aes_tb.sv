@@ -16,7 +16,7 @@ module aes_tb(
 
   logic [7 : 0] Key [0:31];
 
-  logic [31:0] KExp [0:119];
+  logic [31:0] KExp [0:(Nb*(Nr+1)-1)];
 
   integer counter;
 
@@ -47,7 +47,7 @@ module aes_tb(
   );
 
   always_ff @(posedge clk) begin
-    if (counter == 120) begin
+    if (counter == Nb*(Nr+1)) begin
       $finish;
     end else begin
       $display("%D -> %X",counter,KExp[counter]);
