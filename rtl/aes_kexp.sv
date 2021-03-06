@@ -5,14 +5,11 @@ module aes_kexp
 (
   input logic [7:0] Key [0:31],
   input logic [7:0] RCon [0:15],
-  input logic [7:0] SBox [0:255]
+  input logic [7:0] SBox [0:255],
+  output logic [31:0] KExp [0:119]
 );
   timeunit 1ns;
   timeprecision 1ps;
-
-  genvar i;
-
-  logic [31:0] Kexp [0:119];
 
   function [31:0] RotWord;
     input [31:0] Word;
@@ -28,25 +25,22 @@ module aes_kexp
     end
   endfunction
 
+  genvar i;
+
   generate
     for (i = 0; i < Nk; i = i + 1) begin
-      always_comb begin
-        Kexp[i] = {Key[4*i],Key[4*i+1],Key[4*i+2],Key[4*i+3]};
-        $display("%X",Kexp[i]);
-      end
+      assign KExp[i] = {Key[4*i],Key[4*i+1],Key[4*i+2],Key[4*i+3]};
     end
+  endgenerate
+
+  generate
     for (i = Nk; i < Nb*(Nr+1); i = i + 1) begin
-      always_comb begin
-        $display("%X",Kexp[i-1]);
-        if (i % Nk == 0) begin
-          Kexp[i] = SubWord(RotWord(Kexp[i-1])) ^ {RCon[i/Nk],24'h0};
-          $display("%X",{RCon[i/Nk],24'h0});
-        end else if (Nk > 6 && i % Nk == 4) begin
-          Kexp[i] = SubWord(Kexp[i-1]);
-        end
-        Kexp[i] = Kexp[i-Nk] ^ Kexp[i];
-        $display("%X",Kexp[i-Nk]);
-        $display("%X",Kexp[i]);
+      if (i % Nk == 0) begin
+        assign KExp[i] = KExp[i-Nk] ^ SubWord(RotWord(KExp[i-1])) ^ {RCon[i/Nk],24'h0};
+      end else if (Nk > 6 && i % Nk == 4) begin
+        assign KExp[i] = KExp[i-Nk] ^ SubWord(KExp[i-1]);
+      end else begin
+        assign KExp[i] = KExp[i-Nk] ^ KExp[i-1];
       end
     end
   endgenerate

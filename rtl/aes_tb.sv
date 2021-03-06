@@ -16,10 +16,16 @@ module aes_tb(
 
   logic [7 : 0] Key [0:31];
 
+  logic [31:0] KExp [0:119];
+
+  integer counter;
+
   initial begin
 
-    Key[0]=8'h32; Key[1]=8'h43; Key[2]=8'hf6; Key[3]=8'ha8; Key[4]=8'h88; Key[5]=8'h5a; Key[6]=8'h30; Key[7]=8'h8d; Key[8]=8'h31; Key[9]=8'h31; Key[10]=8'h98; Key[11]=8'ha2; Key[12]=8'he0; Key[13]=8'h37; Key[14]=8'h07; Key[15]=8'h34;
+    Key[0]=8'h2b; Key[1]=8'h7e; Key[2]=8'h15; Key[3]=8'h16; Key[4]=8'h28; Key[5]=8'hae; Key[6]=8'hd2; Key[7]=8'ha6; Key[8]=8'hab; Key[9]=8'hf7; Key[10]=8'h15; Key[11]=8'h88; Key[12]=8'h09; Key[13]=8'hcf; Key[14]=8'h4f; Key[15]=8'h3c;
     Key[16]=8'h0; Key[17]=8'h0; Key[18]=8'h0; Key[19]=8'h0; Key[20]=8'h0; Key[21]=8'h0; Key[22]=8'h0; Key[23]=8'h0; Key[24]=8'h0; Key[25]=8'h0; Key[26]=8'h0; Key[27]=8'h0; Key[28]=8'h0; Key[29]=8'h0; Key[30]=8'h0; Key[31]=8'h0;
+
+    counter = 0;
 
   end
 
@@ -36,7 +42,17 @@ module aes_tb(
   (
     .Key (Key),
     .RCon (RCon),
-    .SBox (SBox)
+    .SBox (SBox),
+    .KExp (KExp)
   );
+
+  always_ff @(posedge clk) begin
+    if (counter == 120) begin
+      $finish;
+    end else begin
+      $display("%D -> %X",counter,KExp[counter]);
+      counter = counter + 1;
+    end
+  end
 
 endmodule

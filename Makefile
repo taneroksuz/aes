@@ -3,7 +3,7 @@ default: none
 VERILATOR ?= /opt/verilator/bin/verilator
 SYSTEMC ?= /opt/systemc
 BASEDIR ?= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-CYCLES ?= 1
+CYCLES ?= 10000000
 WAVE ?= "" # "wave" for saving dump file
 
 simulate:
