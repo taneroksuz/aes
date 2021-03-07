@@ -7,5 +7,6 @@
 ../../rtl/aes_arkey.sv
 ../../rtl/aes_sbyte.sv
 ../../rtl/aes_srow.sv
+../../rtl/aes_mcol.sv
 ../../rtl/aes.sv
 ../../rtl/aes_tb.sv

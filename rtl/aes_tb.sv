@@ -22,6 +22,7 @@ module aes_tb(
   logic [7 : 0] State [0:(4*Nb-1)];
   logic [7 : 0] State_B [0:(4*Nb-1)];
   logic [7 : 0] State_R [0:(4*Nb-1)];
+  logic [7 : 0] State_M [0:(4*Nb-1)];
 
   integer counter;
   integer i,j,k;
@@ -67,14 +68,14 @@ module aes_tb(
   aes_arkey #(0) aes_arkey_comp
   (
     .State_in (Data),
-    .Word (KExp),
+    .KExp (KExp),
     .State_out (State)
   );
 
   aes_sbyte aes_sbyte_comp
   (
     .State_in (State),
-    .SBox (SBox),
+    .S_Box (SBox),
     .State_out (State_B)
   );
 
@@ -82,6 +83,14 @@ module aes_tb(
   (
     .State_in (State_B),
     .State_out (State_R)
+  );
+
+  aes_mcol aes_mcol_comp
+  (
+    .State_in (State_R),
+    .EXP_3 (EXP3),
+    .LN_3 (LN3),
+    .State_out (State_M)
   );
 
   always_ff @(posedge clk) begin
@@ -94,7 +103,8 @@ module aes_tb(
           // $write("%X |",Data[4*j+i]);
           // $write("%X |",State[4*j+i]);
           // $write("%X |",State_B[4*j+i]);
-          $write("%X |",State_R[4*j+i]);
+          // $write("%X |",State_R[4*j+i]);
+          $write("%X |",State_M[4*j+i]);
           // $write("%X |",KExp[j]);
           j <= j + 1;
         end else begin
