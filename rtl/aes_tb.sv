@@ -14,16 +14,14 @@ module aes_tb(
   logic [7 : 0] LN3 [0:255];
   logic [7 : 0] RCon [0:15];
 
-  logic [7 : 0] Key [0:31];
+  logic [7 : 0] Key [0:(4*Nk-1)];
+  logic [7 : 0] Data [0:(4*Nb-1)];
 
   logic [31:0] KExp [0:(Nb*(Nr+1)-1)];
 
   integer counter;
 
   initial begin
-
-    Key[0]=8'h2b; Key[1]=8'h7e; Key[2]=8'h15; Key[3]=8'h16; Key[4]=8'h28; Key[5]=8'hae; Key[6]=8'hd2; Key[7]=8'ha6; Key[8]=8'hab; Key[9]=8'hf7; Key[10]=8'h15; Key[11]=8'h88; Key[12]=8'h09; Key[13]=8'hcf; Key[14]=8'h4f; Key[15]=8'h3c;
-    Key[16]=8'h0; Key[17]=8'h0; Key[18]=8'h0; Key[19]=8'h0; Key[20]=8'h0; Key[21]=8'h0; Key[22]=8'h0; Key[23]=8'h0; Key[24]=8'h0; Key[25]=8'h0; Key[26]=8'h0; Key[27]=8'h0; Key[28]=8'h0; Key[29]=8'h0; Key[30]=8'h0; Key[31]=8'h0;
 
     counter = 0;
 
@@ -36,6 +34,18 @@ module aes_tb(
     .EXP_3 (EXP3),
     .LN_3 (LN3),
     .R_Con (RCon)
+  );
+
+  aes_xkey aes_xkey_comp
+  (
+    .key_in (key),
+    .key_out (Key)
+  );
+
+  aes_xdata aes_xdata_comp
+  (
+    .data_in (data),
+    .data_out (Data)
   );
 
   aes_kexp aes_kexp_comp

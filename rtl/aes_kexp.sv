@@ -3,7 +3,7 @@ import aes_wire::*;
 
 module aes_kexp
 (
-  input logic [7:0] Key [0:31],
+  input logic [7:0] Key [0:(4*Nk-1)],
   input logic [7:0] RCon [0:15],
   input logic [7:0] SBox [0:255],
   output logic [31:0] KExp [0:(Nb*(Nr+1)-1)]
