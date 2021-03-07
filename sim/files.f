@@ -4,5 +4,8 @@
 ../../rtl/aes_xdata.sv
 ../../rtl/aes_array.sv
 ../../rtl/aes_kexp.sv
+../../rtl/aes_arkey.sv
+../../rtl/aes_sbyte.sv
+../../rtl/aes_srow.sv
 ../../rtl/aes.sv
 ../../rtl/aes_tb.sv

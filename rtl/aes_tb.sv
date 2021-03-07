@@ -19,11 +19,19 @@ module aes_tb(
 
   logic [31:0] KExp [0:(Nb*(Nr+1)-1)];
 
+  logic [7 : 0] State [0:(4*Nb-1)];
+  logic [7 : 0] State_B [0:(4*Nb-1)];
+  logic [7 : 0] State_R [0:(4*Nb-1)];
+
   integer counter;
+  integer i,j,k;
 
   initial begin
 
     counter = 0;
+    i = 0;
+    j = 0;
+    k = 0;
 
   end
 
@@ -56,12 +64,47 @@ module aes_tb(
     .KExp (KExp)
   );
 
+  aes_arkey #(0) aes_arkey_comp
+  (
+    .State_in (Data),
+    .Word (KExp),
+    .State_out (State)
+  );
+
+  aes_sbyte aes_sbyte_comp
+  (
+    .State_in (State),
+    .SBox (SBox),
+    .State_out (State_B)
+  );
+
+  aes_srow aes_srow_comp
+  (
+    .State_in (State_B),
+    .State_out (State_R)
+  );
+
   always_ff @(posedge clk) begin
-    if (counter == Nb*(Nr+1)) begin
-      $finish;
+    if (counter < Nb*(Nr+1)) begin
+      $write("%D -> %X\n",counter,KExp[counter]);
+      counter <= counter + 1;
     end else begin
-      $display("%D -> %X",counter,KExp[counter]);
-      counter = counter + 1;
+      if (i<4) begin
+        if (j<Nb) begin
+          // $write("%X |",Data[4*j+i]);
+          // $write("%X |",State[4*j+i]);
+          // $write("%X |",State_B[4*j+i]);
+          $write("%X |",State_R[4*j+i]);
+          // $write("%X |",KExp[j]);
+          j <= j + 1;
+        end else begin
+          j <= 0;
+          i <= i + 1;
+          $write("\n");
+        end
+      end else begin
+        $finish;
+      end
     end
   end
 
