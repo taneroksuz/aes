@@ -14,11 +14,14 @@ module aes_mcol
   function [7:0] gmul;
     input [7:0] data_a;
     input [7:0] data_b;
+    logic [8:0] swap;
     begin
       if (data_a == 0 || data_b == 0) begin
         gmul = 0;
       end else begin
-        gmul = EXP_3[(LN_3[data_a] + LN_3[data_b])];
+        swap = LN_3[data_a] + LN_3[data_b];
+        swap = swap % 9'hFF;
+        gmul = EXP_3[swap[7:0]];
       end
     end
   endfunction

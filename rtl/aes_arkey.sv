@@ -7,10 +7,10 @@ module aes_arkey
   input logic [31:0] KExp [0:(Nb*(Nr+1)-1)],
   output logic [7:0] State_out [0:(4*Nb-1)]
 );
-  parameter round = 0;
-
   timeunit 1ns;
   timeprecision 1ps;
+  
+  parameter round = 0;
 
   genvar i,j;
 

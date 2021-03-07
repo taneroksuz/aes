@@ -23,18 +23,10 @@ module aes_tb(
   logic [7 : 0] State_B [0:(4*Nb-1)];
   logic [7 : 0] State_R [0:(4*Nb-1)];
   logic [7 : 0] State_M [0:(4*Nb-1)];
+  logic [7 : 0] State_N [0:(4*Nb-1)];
 
   integer counter;
   integer i,j,k;
-
-  initial begin
-
-    counter = 0;
-    i = 0;
-    j = 0;
-    k = 0;
-
-  end
 
   aes_array aes_array_comp
   (
@@ -65,7 +57,7 @@ module aes_tb(
     .KExp (KExp)
   );
 
-  aes_arkey #(0) aes_arkey_comp
+  aes_arkey #(0) aes_arkey_0_comp
   (
     .State_in (Data),
     .KExp (KExp),
@@ -93,27 +85,42 @@ module aes_tb(
     .State_out (State_M)
   );
 
+  aes_arkey #(1) aes_arkey_1_comp
+  (
+    .State_in (State_M),
+    .KExp (KExp),
+    .State_out (State_N)
+  );
+
   always_ff @(posedge clk) begin
-    if (counter < Nb*(Nr+1)) begin
-      $write("%D -> %X\n",counter,KExp[counter]);
-      counter <= counter + 1;
+    if (rst == 0) begin
+      counter <= 0;
+      i <= 0;
+      j <= 0;
+      k <= 0;
     end else begin
-      if (i<4) begin
-        if (j<Nb) begin
-          // $write("%X |",Data[4*j+i]);
-          // $write("%X |",State[4*j+i]);
-          // $write("%X |",State_B[4*j+i]);
-          // $write("%X |",State_R[4*j+i]);
-          $write("%X |",State_M[4*j+i]);
-          // $write("%X |",KExp[j]);
-          j <= j + 1;
-        end else begin
-          j <= 0;
-          i <= i + 1;
-          $write("\n");
-        end
+      if (counter < Nb*(Nr+1)) begin
+        $write("%D -> %X\n",counter,KExp[counter]);
+        counter <= counter + 1;
       end else begin
-        $finish;
+        if (i<4) begin
+          if (j<Nb) begin
+            // $write("%X |",Data[4*j+i]);
+            // $write("%X |",State[4*j+i]);
+            // $write("%X |",State_B[4*j+i]);
+            // $write("%X |",State_R[4*j+i]);
+            // $write("%X |",State_M[4*j+i]);
+            $write("%X |",State_N[4*j+i]);
+            // $write("%X |",KExp[j]);
+            j <= j + 1;
+          end else begin
+            j <= 0;
+            i <= i + 1;
+            $write("\n");
+          end
+        end else begin
+          $finish;
+        end
       end
     end
   end
