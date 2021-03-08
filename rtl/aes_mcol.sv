@@ -4,8 +4,8 @@ import aes_wire::*;
 module aes_mcol
 (
   input logic [7:0] State_in [0:(4*Nb-1)],
-  input logic [7 : 0] EXP_3 [0:255],
-  input logic [7 : 0] LN_3 [0:255],
+  input logic [7 : 0] EXP3 [0:255],
+  input logic [7 : 0] LN3 [0:255],
   output logic [7:0] State_out [0:(4*Nb-1)]
 );
   timeunit 1ns;
@@ -19,9 +19,9 @@ module aes_mcol
       if (data_a == 0 || data_b == 0) begin
         gmul = 0;
       end else begin
-        swap = LN_3[data_a] + LN_3[data_b];
+        swap = LN3[data_a] + LN3[data_b];
         swap = swap % 9'hFF;
-        gmul = EXP_3[swap[7:0]];
+        gmul = EXP3[swap[7:0]];
       end
     end
   endfunction

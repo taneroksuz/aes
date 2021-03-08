@@ -8,5 +8,7 @@
 ../../rtl/aes_sbyte.sv
 ../../rtl/aes_srow.sv
 ../../rtl/aes_mcol.sv
+../../rtl/aes_round.sv
+../../rtl/aes_fround.sv
 ../../rtl/aes.sv
 ../../rtl/aes_tb.sv

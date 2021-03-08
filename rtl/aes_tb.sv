@@ -8,33 +8,30 @@ module aes_tb(
   timeunit 1ns;
   timeprecision 1ps;
 
-  logic [7 : 0] SBox [0:255];
-  logic [7 : 0] IBox [0:255];
-  logic [7 : 0] EXP3 [0:255];
-  logic [7 : 0] LN3 [0:255];
-  logic [7 : 0] RCon [0:15];
+  logic [31:0] kexp [0:(Nb*(Nr+1)-1)];
+
+  logic [7 : 0] sbox [0:255];
+  logic [7 : 0] ibox [0:255];
+  logic [7 : 0] exp3 [0:255];
+  logic [7 : 0] ln3 [0:255];
+  logic [7 : 0] rcon [0:15];
 
   logic [7 : 0] Key [0:(4*Nk-1)];
   logic [7 : 0] Data [0:(4*Nb-1)];
 
-  logic [31:0] KExp [0:(Nb*(Nr+1)-1)];
+  logic [7 : 0] State [0:Nr][0:(4*Nb-1)];
 
-  logic [7 : 0] State [0:(4*Nb-1)];
-  logic [7 : 0] State_B [0:(4*Nb-1)];
-  logic [7 : 0] State_R [0:(4*Nb-1)];
-  logic [7 : 0] State_M [0:(4*Nb-1)];
-  logic [7 : 0] State_N [0:(4*Nb-1)];
+  genvar i;
 
-  integer counter;
-  integer i,j,k;
+  integer j,k,l,m;
 
   aes_array aes_array_comp
   (
-    .S_Box (SBox),
-    .I_Box (IBox),
-    .EXP_3 (EXP3),
-    .LN_3 (LN3),
-    .R_Con (RCon)
+    .SBox (sbox),
+    .IBox (ibox),
+    .EXP3 (exp3),
+    .LN3 (ln3),
+    .RCon (rcon)
   );
 
   aes_xkey aes_xkey_comp
@@ -52,70 +49,66 @@ module aes_tb(
   aes_kexp aes_kexp_comp
   (
     .Key (Key),
-    .RCon (RCon),
-    .SBox (SBox),
-    .KExp (KExp)
+    .RCon (rcon),
+    .SBox (sbox),
+    .KExp (kexp)
   );
 
-  aes_arkey #(0) aes_arkey_0_comp
+  aes_arkey aes_arkey_comp
   (
     .State_in (Data),
-    .KExp (KExp),
-    .State_out (State)
+    .KExp (kexp),
+    .Index (0),
+    .State_out (State[0])
   );
 
-  aes_sbyte aes_sbyte_comp
-  (
-    .State_in (State),
-    .S_Box (SBox),
-    .State_out (State_B)
-  );
+  generate
+    for (i=1; i<Nr; i=i+1) begin
+      aes_round aes_round_comp
+      (
+        .State_in (State[i-1]),
+        .Index (i),
+        .KExp (kexp),
+        .SBox (sbox),
+        .EXP3 (exp3),
+        .LN3 (ln3),
+        .State_out (State[i])
+      );
+    end
+  endgenerate;
 
-  aes_srow aes_srow_comp
+  aes_fround aes_fround_comp
   (
-    .State_in (State_B),
-    .State_out (State_R)
-  );
-
-  aes_mcol aes_mcol_comp
-  (
-    .State_in (State_R),
-    .EXP_3 (EXP3),
-    .LN_3 (LN3),
-    .State_out (State_M)
-  );
-
-  aes_arkey #(1) aes_arkey_1_comp
-  (
-    .State_in (State_M),
-    .KExp (KExp),
-    .State_out (State_N)
+    .State_in (State[Nr-1]),
+    .Index (Nr),
+    .KExp (kexp),
+    .SBox (sbox),
+    .State_out (State[Nr])
   );
 
   always_ff @(posedge clk) begin
     if (rst == 0) begin
-      counter <= 0;
       i <= 0;
       j <= 0;
       k <= 0;
     end else begin
-      if (counter < Nb*(Nr+1)) begin
-        $write("%D -> %X\n",counter,KExp[counter]);
-        counter <= counter + 1;
+      if (j < Nb*(Nr+1)) begin
+        $write("%D -> %X\n",j,kexp[j]);
+        j <= j + 1;
       end else begin
-        if (i<4) begin
-          if (j<Nb) begin
-            // $write("%X |",Data[4*j+i]);
-            // $write("%X |",State[4*j+i]);
-            // $write("%X |",State_B[4*j+i]);
-            // $write("%X |",State_R[4*j+i]);
-            // $write("%X |",State_M[4*j+i]);
-            $write("%X |",State_N[4*j+i]);
-            // $write("%X |",KExp[j]);
-            j <= j + 1;
+        if (k<=Nr) begin
+          if (l<4) begin
+            if (m<Nb) begin
+              $write("%X |",State[k][4*m+l]);
+              m <= m + 1;
+            end else begin
+              m <= 0;
+              l <= l + 1;
+              $write("\n");
+            end
           end else begin
-            j <= 0;
-            i <= i + 1;
+            l <= 0;
+            k <= k + 1;
             $write("\n");
           end
         end else begin
