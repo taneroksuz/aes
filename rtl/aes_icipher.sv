@@ -22,7 +22,7 @@ module aes_icipher(
   (
     .State_in (Data_in),
     .KExp (KExp),
-    .Index (Nr),
+    .Index (Nr[3:0]),
     .State_out (State[Nr-1])
   );
 
@@ -44,7 +44,7 @@ module aes_icipher(
   aes_ifround aes_ifround_comp
   (
     .State_in (State[0]),
-    .Index (0),
+    .Index (4'h0),
     .KExp (KExp),
     .IBox (IBox),
     .State_out (Data_out)
