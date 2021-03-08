@@ -31,7 +31,7 @@ module aes_cipher(
       aes_round aes_round_comp
       (
         .State_in (State[i-1]),
-        .Index (i),
+        .Index (i[3:0]),
         .KExp (KExp),
         .SBox (SBox),
         .EXP3 (EXP3),
