@@ -6,9 +6,16 @@
 ../../rtl/aes_kexp.sv
 ../../rtl/aes_arkey.sv
 ../../rtl/aes_sbyte.sv
+../../rtl/aes_isbyte.sv
 ../../rtl/aes_srow.sv
+../../rtl/aes_isrow.sv
 ../../rtl/aes_mcol.sv
+../../rtl/aes_imcol.sv
 ../../rtl/aes_round.sv
+../../rtl/aes_iround.sv
 ../../rtl/aes_fround.sv
+../../rtl/aes_ifround.sv
+../../rtl/aes_cipher.sv
+../../rtl/aes_icipher.sv
 ../../rtl/aes.sv
 ../../rtl/aes_tb.sv

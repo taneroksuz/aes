@@ -18,10 +18,8 @@ module aes_tb(
 
   logic [7 : 0] Key [0:(4*Nk-1)];
   logic [7 : 0] Data [0:(4*Nb-1)];
-
-  logic [7 : 0] State [0:Nr][0:(4*Nb-1)];
-
-  genvar i;
+  logic [7 : 0] Result [0:(4*Nb-1)];
+  logic [7 : 0] Orig [0:(4*Nb-1)];
 
   integer j,k,l,m;
 
@@ -54,61 +52,47 @@ module aes_tb(
     .KExp (kexp)
   );
 
-  aes_arkey aes_arkey_comp
+  aes_cipher aes_cipher_comp
   (
-    .State_in (Data),
+    .rst (rst),
+    .clk (clk),
+    .SBox (sbox),
+    .EXP3 (exp3),
+    .LN3 (ln3),
     .KExp (kexp),
-    .Index (0),
-    .State_out (State[0])
+    .Data_in (Data),
+    .Data_out (Result)
   );
 
-  generate
-    for (i=1; i<Nr; i=i+1) begin
-      aes_round aes_round_comp
-      (
-        .State_in (State[i-1]),
-        .Index (i),
-        .KExp (kexp),
-        .SBox (sbox),
-        .EXP3 (exp3),
-        .LN3 (ln3),
-        .State_out (State[i])
-      );
-    end
-  endgenerate;
-
-  aes_fround aes_fround_comp
+  aes_icipher aes_icipher_comp
   (
-    .State_in (State[Nr-1]),
-    .Index (Nr),
+    .rst (rst),
+    .clk (clk),
+    .IBox (ibox),
+    .EXP3 (exp3),
+    .LN3 (ln3),
     .KExp (kexp),
-    .SBox (sbox),
-    .State_out (State[Nr])
+    .Data_in (Result),
+    .Data_out (Orig)
   );
 
   always_ff @(posedge clk) begin
     if (rst == 0) begin
-      i <= 0;
       j <= 0;
       k <= 0;
+      m <= 0;
     end else begin
       if (j < Nb*(Nr+1)) begin
         $write("%D -> %X\n",j,kexp[j]);
         j <= j + 1;
       end else begin
-        if (k<=Nr) begin
-          if (l<4) begin
-            if (m<Nb) begin
-              $write("%X |",State[k][4*m+l]);
-              m <= m + 1;
-            end else begin
-              m <= 0;
-              l <= l + 1;
-              $write("\n");
-            end
+        if (l<4) begin
+          if (m<Nb) begin
+            $write("%X |",Orig[4*m+l]);
+            m <= m + 1;
           end else begin
-            l <= 0;
-            k <= k + 1;
+            m <= 0;
+            l <= l + 1;
             $write("\n");
           end
         end else begin
