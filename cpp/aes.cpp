@@ -190,9 +190,9 @@ void AES::AddRoundkey(uint8_t *state,int round)
         temp = this->Word[round*this->Nb+j];
         for (int i=0; i<4; i++)
         {
-            uint8_t index = state[4*i+j];
+            uint8_t index = state[i*this->Nb+j];
             uint8_t key = (temp >> ((3-i)*8)) & 0xFF;
-            state[4*i+j] = key ^ index;
+            state[i*this->Nb+j] = key ^ index;
         }
     }
 }
@@ -205,7 +205,7 @@ void AES::MixColumns(uint8_t *state)
     {
         for (int i=0; i<4; i++)
         {
-            column[i] = state[4*i+j];
+            column[i] = state[i*this->Nb+j];
         }
         last[0] = GaloisMul(0x02,column[0]) ^ GaloisMul(0x03,column[1]) ^ GaloisMul(0x01,column[2]) ^ GaloisMul(0x01,column[3]);
         last[1] = GaloisMul(0x01,column[0]) ^ GaloisMul(0x02,column[1]) ^ GaloisMul(0x03,column[2]) ^ GaloisMul(0x01,column[3]);
@@ -213,7 +213,7 @@ void AES::MixColumns(uint8_t *state)
         last[3] = GaloisMul(0x03,column[0]) ^ GaloisMul(0x01,column[1]) ^ GaloisMul(0x01,column[2]) ^ GaloisMul(0x02,column[3]);
         for (int i=0; i<4; i++)
         {
-            state[4*i+j] = last[i];
+            state[i*this->Nb+j] = last[i];
         }
     }
 }
@@ -272,7 +272,7 @@ void AES::InvMixColumns(uint8_t *state)
     {
         for (int i=0; i<4; i++)
         {
-            column[i] = state[4*i+j];
+            column[i] = state[i*this->Nb+j];
         }
         last[0] = GaloisMul(0x0e,column[0]) ^ GaloisMul(0x0b,column[1]) ^ GaloisMul(0x0d,column[2]) ^ GaloisMul(0x09,column[3]);
         last[1] = GaloisMul(0x09,column[0]) ^ GaloisMul(0x0e,column[1]) ^ GaloisMul(0x0b,column[2]) ^ GaloisMul(0x0d,column[3]);
@@ -280,7 +280,7 @@ void AES::InvMixColumns(uint8_t *state)
         last[3] = GaloisMul(0x0b,column[0]) ^ GaloisMul(0x0d,column[1]) ^ GaloisMul(0x09,column[2]) ^ GaloisMul(0x0e,column[3]);
         for (int i=0; i<4; i++)
         {
-            state[4*i+j] = last[i];
+            state[i*this->Nb+j] = last[i];
         }
     }
 }
@@ -356,20 +356,20 @@ uint32_t AES::SubWord(uint32_t word)
 void AES::print_state(uint8_t *state)
 {
 #ifdef LINE
-    for (int j=0; j<this->Nb; j++)
-    {
-        for (int i=0; i<4; i++)
-        {
-            printf("%02x",state[i*this->Nb+j]);
-        }
-    }
-    printf("\n");
-#else
     for (int i=0; i<4; i++)
     {
         for (int j=0; j<this->Nb; j++)
         {
-            printf("%02X |",state[i*this->Nb+j]);
+            printf("%02x",state[4*j+i]);
+        }
+    }
+    printf("\n");
+#else
+    for (int j=0; j<this->Nb; j++)
+    {
+        for (int i=0; i<4; i++)
+        {
+            printf("%02X |",state[4*j+i]);
         }
         printf("\n");
     }
@@ -387,7 +387,7 @@ void AES::copy_in(uint8_t *state,uint8_t *in)
     {
         for (int i=0; i<4; i++)
         {
-            state[4*i+j] = in[j*this->Nb+i];
+            state[i*this->Nb+j] = in[4*j+i];
         }
     }
 }
@@ -398,7 +398,7 @@ void AES::copy_out(uint8_t *state,uint8_t *out)
     {
         for (int i=0; i<4; i++)
         {
-            out[j*this->Nb+i] = state[4*i+j];
+            out[4*j+i] = state[i*this->Nb+j];
         }
     }
 }
