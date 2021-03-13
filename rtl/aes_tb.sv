@@ -5,6 +5,7 @@ module aes_tb(
   input logic rst,
   input logic clk
 );
+
   timeunit 1ns;
   timeprecision 1ps;
 
@@ -20,6 +21,12 @@ module aes_tb(
   logic [7 : 0] Data [0:(4*Nb-1)];
   logic [7 : 0] Result [0:(4*Nb-1)];
   logic [7 : 0] Orig [0:(4*Nb-1)];
+
+  logic [0 : 0] Enable = 1;
+
+  logic [0 : 0] Enable_Cipher = 1;
+  logic [0 : 0] Result_Cipher;
+  logic [0 : 0] Result_Icipher;
 
   integer j,k,l,m;
 
@@ -49,6 +56,7 @@ module aes_tb(
     .Key (Key),
     .RCon (rcon),
     .SBox (sbox),
+    .Enable (Enable),
     .KExp (kexp)
   );
 
@@ -61,7 +69,9 @@ module aes_tb(
     .LN3 (ln3),
     .KExp (kexp),
     .Data_in (Data),
-    .Data_out (Result)
+    .Enable (Enable_Cipher),
+    .Data_out (Result),
+    .Ready_out (Result_Cipher)
   );
 
   aes_icipher aes_icipher_comp
@@ -73,13 +83,16 @@ module aes_tb(
     .LN3 (ln3),
     .KExp (kexp),
     .Data_in (Result),
-    .Data_out (Orig)
+    .Enable (Result_Cipher),
+    .Data_out (Orig),
+    .Ready_out (Result_Icipher)
   );
 
   always_ff @(posedge clk) begin
     if (rst == 0) begin
       j <= 0;
       k <= 0;
+      l <= 0;
       m <= 0;
     end else begin
       if (j < Nb*(Nr+1)) begin

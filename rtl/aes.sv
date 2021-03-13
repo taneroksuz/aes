@@ -11,13 +11,13 @@ module aes
   timeunit 1ns;
   timeprecision 1ps;
 
-  logic [7 : 0] SBox [0:255];
-  logic [7 : 0] IBox [0:255];
-  logic [7 : 0] EXP3 [0:255];
-  logic [7 : 0] LN3 [0:255];
-  logic [7 : 0] RCon [0:15];
+  logic [31:0] kexp [0:(Nb*(Nr+1)-1)];
 
-  logic [31:0] KExp [0:(Nb*(Nr+1)-1)];
+  logic [7 : 0] sbox [0:255];
+  logic [7 : 0] ibox [0:255];
+  logic [7 : 0] exp3 [0:255];
+  logic [7 : 0] ln3 [0:255];
+  logic [7 : 0] rcon [0:15];
 
   localparam [1:0] idle = 2'h0;
   localparam [1:0] kexp = 2'h1;

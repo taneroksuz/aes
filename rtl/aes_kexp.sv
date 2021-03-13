@@ -6,10 +6,13 @@ module aes_kexp
   input logic [7:0] Key [0:(4*Nk-1)],
   input logic [7:0] RCon [0:15],
   input logic [7:0] SBox [0:255],
+  input logic [0:0] Enable,
   output logic [31:0] KExp [0:(Nb*(Nr+1)-1)]
 );
   timeunit 1ns;
   timeprecision 1ps;
+
+  logic [7:0] key [0:(4*Nk-1)];
 
   function [31:0] RotWord;
     input [31:0] Word;
@@ -28,8 +31,18 @@ module aes_kexp
   genvar i;
 
   generate
+    for (i = 0; i < 4*Nk; i = i + 1) begin
+      always_comb begin
+        if (Enable == 1) begin
+          key[i] = Key[i];
+        end
+      end
+    end
+  endgenerate
+
+  generate
     for (i = 0; i < Nk; i = i + 1) begin
-      assign KExp[i] = {Key[4*i],Key[4*i+1],Key[4*i+2],Key[4*i+3]};
+      assign KExp[i] = {key[4*i],key[4*i+1],key[4*i+2],key[4*i+3]};
     end
   endgenerate
 
