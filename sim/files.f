@@ -2,6 +2,7 @@
 ../../rtl/aes_wire.sv
 ../../rtl/aes_xkey.sv
 ../../rtl/aes_xdata.sv
+../../rtl/aes_cdata.sv
 ../../rtl/aes_array.sv
 ../../rtl/aes_kexp.sv
 ../../rtl/aes_arkey.sv
