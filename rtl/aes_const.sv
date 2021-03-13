@@ -28,6 +28,6 @@ package aes_const;
   parameter Nr = 10;
 
   parameter [127:0] key = 128'h2b7e151628aed2a6abf7158809cf4f3c;
-  parameter [127:0] data = 128'h03243f6a8885a308d313198a2e0370734;
+  parameter [127:0] data = 128'h3243f6a8885a308d313198a2e0370734;
 
 endpackage

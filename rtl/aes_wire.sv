@@ -1,8 +1,8 @@
 package aes_wire;
-  import aes_const::*;
-
   timeunit 1ns;
   timeprecision 1ps;
+
+  import aes_const::*;
 
   typedef struct packed{
     logic [(32*Nk-1):0] key;

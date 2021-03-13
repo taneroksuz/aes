@@ -34,11 +34,6 @@ module aes
   logic [0 : 0] cipher_ready;
   logic [0 : 0] icipher_ready;
 
-  localparam [1:0] idle = 2'h0;
-  localparam [1:0] kexp = 2'h1;
-  localparam [1:0] cipher  = 2'h2;
-  localparam [1:0] icipher = 2'h3;
-
   aes_array aes_array_comp
   (
     .SBox (sbox),
@@ -116,11 +111,11 @@ module aes
     icipher_enable = 0;
 
     if (aes_in.enable == 1) begin
-      if (aes_in.func == kexp) begin
+      if (aes_in.func == 1) begin
         kexp_enable = 1;
-      end else if (aes_in.func == cipher) begin
+      end else if (aes_in.func == 2) begin
         cipher_enable = 1;
-      end else if (aes_in.func == icipher) begin
+      end else if (aes_in.func == 3) begin
         icipher_enable = 1;
       end
     end
