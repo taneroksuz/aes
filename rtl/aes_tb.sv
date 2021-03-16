@@ -19,7 +19,17 @@ module aes_tb(
 
   integer state;
 
-  integer j,k,l,m;
+  integer i;
+
+  logic [(32*Nk-1):0] key_block [0:0];
+  logic [(32*Nb-1):0] data_block [0:99];
+  logic [(32*Nb-1):0] encrypt_block [0:99];
+
+  initial begin
+    $readmemh("key.txt", key_block);
+    $readmemh("data.txt", data_block);
+    $readmemh("encrypt.txt", encrypt_block);
+  end
 
   always_ff @(posedge clk) begin
     if (rst == 0) begin
@@ -31,25 +41,34 @@ module aes_tb(
       state <= 0;
       result <= 0;
       orig <= 0;
+      i <= 0;
     end else begin
       if (state == 0) begin
-        aes_in.key <= key;
+        aes_in.key <= key_block[0];
         aes_in.data <= 0;
         aes_in.func <= 1;
         aes_in.enable <= enable;
         enable <= 1;
         state <= state + 1;
+        $display("Key: %X",key_block[0]);
       end else if (state == 1) begin
         aes_in.key <= 0;
-        aes_in.data <= data;
+        aes_in.data <= data_block[i];
         aes_in.func <= 2;
         aes_in.enable <= enable;
         enable <= 0;
         if (aes_out.ready == 1) begin
           enable <= 1;
           state <= state + 1;
-          $display("Cipher: %X",aes_out.result);
+          $display("Encrypt: %X",aes_out.result);
+          $display("Correct: %X",encrypt_block[i]);
           result <= aes_out.result;
+          if (|(aes_out.result ^ encrypt_block[i]) == 0) begin
+            $display("Encryption success!");
+          end else begin
+            $display("Encryption failed!");
+            $finish;
+          end
         end
       end else if (state == 2) begin
         aes_in.key <= 0;
@@ -58,12 +77,26 @@ module aes_tb(
         aes_in.enable <= enable;
         enable <= 0;
         if (aes_out.ready == 1) begin
+          enable <= 1;
           state <= state + 1;
-          $display("ICipher: %X",aes_out.result);
+          $display("Decrypt: %X",aes_out.result);
+          $display("Correct: %X",data_block[i]);
           orig <= aes_out.result;
+          if (|(aes_out.result ^ data_block[i]) == 0) begin
+            $display("Decryption success!");
+          end else begin
+            $display("Decryption failed!");
+            $finish;
+          end
         end
       end else begin
-        $finish;
+        if (i==99) begin
+          $display("Test success!");
+          $finish;
+        end else begin
+          i <= i+1;
+          state <= 1;
+        end
       end
     end
   end

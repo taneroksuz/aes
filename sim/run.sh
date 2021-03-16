@@ -22,6 +22,8 @@ else
   CYCLES=10000000000
 fi
 
+cp ${DIR}/py/*.txt ${DIR}/sim/work/
+
 cd ${DIR}/sim/work
 
 start=`date +%s`

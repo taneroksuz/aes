@@ -32,8 +32,7 @@ f.close()
 
 d = open("data.txt", "w")
 e = open("encrypt.txt", "w")
-iv = bytes(bytearray(AES.block_size))
-cipher = AES.new(key,AES.MODE_CBC,iv)
+cipher = AES.new(key,AES.MODE_ECB)
 for i in range(args.word_number):
     data = Random.new().read(AES.block_size)
     encrypt = cipher.encrypt(data)

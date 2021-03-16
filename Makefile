@@ -3,7 +3,9 @@ default: none
 VERILATOR ?= /opt/verilator/bin/verilator
 SYSTEMC ?= /opt/systemc
 BASEDIR ?= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-CYCLES ?= 10000000
+CYCLES ?= 1000000000
+KLENGTH ?= 128
+NWORDS ?= 100
 WAVE ?= "" # "wave" for saving dump file
 
 compile:
@@ -13,4 +15,8 @@ compile:
 simulate:
 	sim/run.sh ${BASEDIR} ${VERILATOR} ${SYSTEMC} ${CYCLES} ${WAVE}
 
-all: simulate
+generate:
+	cd ${BASEDIR}/py; \
+	./generate.py -k ${KLENGTH} -w ${NWORDS};
+
+all: generate simulate
