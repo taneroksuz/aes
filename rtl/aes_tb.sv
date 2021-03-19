@@ -9,6 +9,8 @@ module aes_tb(
   timeunit 1ns;
   timeprecision 1ps;
 
+  parameter enable_pipeline = 0;
+
   aes_in_type aes_in;
   aes_out_type aes_out;
 
@@ -101,12 +103,30 @@ module aes_tb(
     end
   end
 
-  aes aes_comp
-  (
-    .rst (rst),
-    .clk (clk),
-    .aes_in (aes_in),
-    .aes_out (aes_out)
-  );
+  generate
+
+    if (enable_pipeline) begin
+
+      aes aes_comp
+      (
+        .rst (rst),
+        .clk (clk),
+        .aes_in (aes_in),
+        .aes_out (aes_out)
+      );
+
+    end else begin
+
+      aes_state aes_state_comp
+      (
+        .rst (rst),
+        .clk (clk),
+        .aes_in (aes_in),
+        .aes_out (aes_out)
+      );
+
+    end
+
+  endgenerate
 
 endmodule

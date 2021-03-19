@@ -18,5 +18,8 @@
 ../../rtl/aes_ifround.sv
 ../../rtl/aes_cipher.sv
 ../../rtl/aes_icipher.sv
+../../rtl/aes_cipher_state.sv
+../../rtl/aes_icipher_state.sv
 ../../rtl/aes.sv
+../../rtl/aes_state.sv
 ../../rtl/aes_tb.sv
