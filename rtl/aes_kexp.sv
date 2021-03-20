@@ -41,14 +41,10 @@ module aes_kexp
   endgenerate
 
   generate
-    for (i = 0; i < Nk; i = i + 1) begin
-      assign KExp[i] = {key[4*i],key[4*i+1],key[4*i+2],key[4*i+3]};
-    end
-  endgenerate
-
-  generate
-    for (i = Nk; i < Nb*(Nr+1); i = i + 1) begin
-      if (i % Nk == 0) begin
+    for (i = 0; i < Nb*(Nr+1); i = i + 1) begin
+      if (i<Nk) begin
+        assign KExp[i] = {key[4*i],key[4*i+1],key[4*i+2],key[4*i+3]};
+      end else if (i % Nk == 0) begin
         assign KExp[i] = KExp[i-Nk] ^ SubWord(RotWord(KExp[i-1])) ^ {RCon[i/Nk],24'h0};
       end else if (Nk > 6 && i % Nk == 4) begin
         assign KExp[i] = KExp[i-Nk] ^ SubWord(KExp[i-1]);
