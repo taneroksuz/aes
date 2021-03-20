@@ -5,6 +5,7 @@
 ../../rtl/aes_cdata.sv
 ../../rtl/aes_array.sv
 ../../rtl/aes_kexp.sv
+../../rtl/aes_kexp_state.sv
 ../../rtl/aes_arkey.sv
 ../../rtl/aes_sbyte.sv
 ../../rtl/aes_isbyte.sv

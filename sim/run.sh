@@ -31,7 +31,7 @@ if [ "$5" = 'wave' ]
 then
   ${VERILATOR} --sc -Wno-UNOPTFLAT --trace -trace-max-array 128 --trace-structs -f ${DIR}/sim/files.f --top-module aes_tb --exe ${DIR}/rtl/aes_tb.cpp -I${DIR}/rtl
   make -s -j -C obj_dir/ -f Vaes_tb.mk Vaes_tb
-  obj_dir/Vaes_tb $CYCLES 2> /dev/null
+  obj_dir/Vaes_tb $CYCLES aes 2> /dev/null
 else
   ${VERILATOR} --sc -Wno-UNOPTFLAT -f ${DIR}/sim/files.f --top-module aes_tb --exe ${DIR}/rtl/aes_tb.cpp -I${DIR}/rtl
   make -s -j -C obj_dir/ -f Vaes_tb.mk Vaes_tb

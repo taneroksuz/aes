@@ -31,6 +31,7 @@ module aes_state
   logic [0 : 0] cipher_enable;
   logic [0 : 0] icipher_enable;
 
+  logic [0 : 0] kexp_ready;
   logic [0 : 0] cipher_ready;
   logic [0 : 0] icipher_ready;
 
@@ -55,13 +56,16 @@ module aes_state
     .data_out (data_array)
   );
 
-  aes_kexp aes_kexp_comp
+  aes_kexp_state aes_kexp_state_comp
   (
+    .rst (rst),
+    .clk (clk),
     .Key (key_array),
     .RCon (rcon),
     .SBox (sbox),
     .Enable (kexp_enable),
-    .KExp (kexp)
+    .KExp (kexp),
+    .Ready_out (kexp_ready)
   );
 
   aes_cipher_state aes_cipher_state_comp
@@ -124,7 +128,10 @@ module aes_state
 
   always_comb begin
 
-    if (cipher_ready == 1) begin
+    if (kexp_ready == 1) begin
+      aes_out.result = 0;
+      aes_out.ready = kexp_ready;
+    end else if (cipher_ready == 1) begin
       aes_out.result = cipher_data;
       aes_out.ready = cipher_ready;
     end else if (icipher_ready == 1) begin

@@ -50,9 +50,12 @@ module aes_tb(
         aes_in.data <= 0;
         aes_in.func <= 1;
         aes_in.enable <= enable;
-        enable <= 1;
-        state <= state + 1;
-        $display("Key: %X",key_block[0]);
+        enable <= 0;
+        if (aes_out.ready == 1) begin
+          enable <= 1;
+          state <= state + 1;
+          $display("Key: %X",key_block[0]);
+        end
       end else if (state == 1) begin
         aes_in.key <= 0;
         aes_in.data <= data_block[i];
