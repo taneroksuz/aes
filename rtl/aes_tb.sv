@@ -9,7 +9,7 @@ module aes_tb(
   timeunit 1ns;
   timeprecision 1ps;
 
-  parameter enable_pipeline = 0;
+  parameter enable_pipeline = 1;
 
   aes_in_type aes_in;
   aes_out_type aes_out;
