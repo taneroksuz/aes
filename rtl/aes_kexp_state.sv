@@ -16,8 +16,8 @@ module aes_kexp_state
   timeprecision 1ps;
 
   logic [31 : 0] KExp_R [0:(Nb*(Nr+1)-1)];
-  logic [31 : 0] KExp_P [0:7];
-  logic [31 : 0] KExp_N [0:7];
+  logic [31 : 0] KExp_P [0:(Nk-1)];
+  logic [31 : 0] KExp_N [0:(Nk-1)];
 
   localparam LENGTH = (Nb*(Nr+1));
   localparam WIDTH = $clog2(LENGTH);
@@ -76,18 +76,14 @@ module aes_kexp_state
         end
       end
       default : begin
-        KExp_P[0] = KExp_N[0] ^ SubWord(RotWord(KExp_N[Nk-1])) ^ {RCon[v.state],24'h0};
-        KExp_P[1] = KExp_N[1] ^ KExp_P[0];
-        KExp_P[2] = KExp_N[2] ^ KExp_P[1];
-        KExp_P[3] = KExp_N[3] ^ KExp_P[2];
-        if (Nk == 6) begin
-          KExp_P[4] = KExp_N[4] ^ KExp_P[3];
-          KExp_P[5] = KExp_N[5] ^ KExp_P[4];
-        end else if (Nk == 8) begin
-          KExp_P[4] = KExp_N[4] ^ SubWord(KExp_P[3]);
-          KExp_P[5] = KExp_N[5] ^ KExp_P[4];
-          KExp_P[6] = KExp_N[6] ^ KExp_P[5];
-          KExp_P[7] = KExp_N[7] ^ KExp_P[6];
+        for (int i=0; i<Nk; i=i+1) begin
+          if (i == 0) begin
+            KExp_P[i] = KExp_N[i] ^ SubWord(RotWord(KExp_N[Nk-1])) ^ {RCon[v.state],24'h0};
+          end else if (Nk > 6 && i == 4) begin
+            KExp_P[i] = KExp_N[i] ^ SubWord(KExp_P[i-1]);
+          end else begin
+            KExp_P[i] = KExp_N[i] ^ KExp_P[i-1];
+          end
         end
         if (v.index > (Nb*(Nr+1)-Nk)) begin
           v.state = 0;
