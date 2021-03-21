@@ -8,8 +8,8 @@ There are two version of this algorithm. These are in pipeline and finite state 
 
 | Key Length | 128 | 192 | 256 |
 |:-----------|:---:|:---:|:---:|
-| LUT | 38766 | 47546 | 54642 |
-| FF | 2763 | 3098 | 3562 |
+| LUT | 38766 | 47945 | 55001 |
+| FF | 2763 | 3227 | 3691 |
 
 ### FSM Version
 
