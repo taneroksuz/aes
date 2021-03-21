@@ -39,6 +39,18 @@ module aes_kexp
     end
   endfunction
 
+  function [31:0] Min;
+    input [31:0] A;
+    input [31:0] B;
+    begin
+      if (A>B) begin
+        Min = B;
+      end else begin
+        Min = A;
+      end
+    end
+  endfunction
+
   initial begin
     KExp_P = '{default:'{default:'0}};
     KExp_N = '{default:'{default:'0}};
@@ -65,7 +77,7 @@ module aes_kexp
   end
 
   generate
-    for (i = 1; i < $ceil((Nb*(Nr+1))/Nk); i = i + 1) begin
+    for (i = 1; i < Nx; i = i + 1) begin
       for (j = 0; j < Nk; j = j + 1) begin
         if (j % Nk == 0) begin
           assign KExp_P[i][j] = KExp_N[i-1][j] ^ SubWord(RotWord(KExp_P[i-1][Nk-1])) ^ {RCon[i],24'h0};
@@ -76,7 +88,7 @@ module aes_kexp
         end
       end
       always_comb begin
-        KExp_R[Nk*i:(Nk*(i+1)-1)] = KExp_P[i];
+        KExp_R[Nk*i:(Min(Nk*(i+1),Nb*(Nr+1))-1)] = KExp_P[i][0:(Min(Nk*(i+1),Nb*(Nr+1))-Nk*i-1)];
         Ready_P[i] = Ready_N[i-1];
       end
       always_ff @(posedge clk) begin
