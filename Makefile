@@ -9,8 +9,12 @@ NWORDS ?= 100
 WAVE ?= "" # "wave" for saving dump file
 
 compile:
-	g++ -DDEBUG -DLINE -O3 ${BASEDIR}/cpp/aes.cpp ${BASEDIR}/cpp/main.cpp -o ${BASEDIR}/cpp/main.o
-	${BASEDIR}/cpp/main.o
+	g++ -O3 ${BASEDIR}/cpp/aes.cpp ${BASEDIR}/cpp/main.cpp -o ${BASEDIR}/cpp/main.o
+
+run:
+	cp -r ${BASEDIR}/py/*.txt ${BASEDIR}/cpp/; \
+	cd ${BASEDIR}/cpp; \
+	./main.o ${KLENGTH}  ${NWORDS}
 
 simulate:
 	sim/run.sh ${BASEDIR} ${VERILATOR} ${SYSTEMC} ${CYCLES} ${WAVE}
