@@ -14,7 +14,7 @@ compile:
 run:
 	cp -r ${BASEDIR}/py/*.txt ${BASEDIR}/cpp/; \
 	cd ${BASEDIR}/cpp; \
-	./main.o ${KLENGTH}  ${NWORDS}
+	./main.o ${KLENGTH} ${NWORDS}
 
 simulate:
 	sim/run.sh ${BASEDIR} ${VERILATOR} ${SYSTEMC} ${CYCLES} ${WAVE}

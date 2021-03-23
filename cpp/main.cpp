@@ -29,12 +29,10 @@ void get(string in,uint8_t *out, int num)
         out[i] = hex(in[2*i]);
         out[i] <<= 0x4;
         out[i] += hex(in[2*i+1]);
-        printf("%02x",out[i]);
     }
-    printf("\n");
 }
 
-void compare(uint8_t *in,uint8_t *out, int num)
+void compare(uint8_t *in,uint8_t *out, int num, int type)
 {
     bool res = true;
     for (int i=0; i<num; i=i+1)
@@ -45,10 +43,29 @@ void compare(uint8_t *in,uint8_t *out, int num)
             break;
         }
     }
-    if (res)
-      printf("Success\n");
+    if (type)
+        printf("Encrypt: ");
     else
-      printf("Error\n");
+        printf("Decrypt: ");
+    for (int i=0; i<num; i=i+1)
+    {
+        printf("%02X",in[i]);
+    }
+    printf("\n");
+    printf("Correct: ");
+    for (int i=0; i<num; i=i+1)
+    {
+        printf("%02X",out[i]);
+    }
+    printf("\n");
+    if (type)
+        printf("Encryption ");
+    else
+        printf("Decryption ");
+    if (res)
+        printf("success!\n");
+    else
+        printf("failed!\n");
 }
 
 int main(int argc, char *argv[])
@@ -351,8 +368,8 @@ int main(int argc, char *argv[])
         aes->Cipher(dat,out);
         aes->InvCipher(out,res);
         get(encrypt_str,enc,16);
-        compare(out,enc,16);
-        compare(res,dat,16);
+        compare(out,enc,16,1);
+        compare(res,dat,16,0);
     }
 
 
