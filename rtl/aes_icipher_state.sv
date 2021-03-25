@@ -60,7 +60,10 @@ module aes_icipher_state(
             v.state = Nr-1;
           end
           v.ready = 0;
+          State_R_in = '{default:'0};
+          State_B_in = '{default:'0};
           State_A_in = Data_in;
+          State_M_in = '{default:'0};
           State_P = State_A_out;
           Index = Nr[3:0];
         end
@@ -71,6 +74,7 @@ module aes_icipher_state(
           State_R_in = State_N;
           State_B_in = State_R_out;
           State_A_in = State_B_out;
+          State_M_in = '{default:'0};
           State_P = State_A_out;
           Index = 4'h0;
         end

@@ -60,6 +60,9 @@ module aes_cipher_state(
             v.state = 1;
           end
           v.ready = 0;
+          State_B_in = '{default:'0};
+          State_R_in = '{default:'0};
+          State_M_in = '{default:'0};
           State_A_in = Data_in;
           State_P = State_A_out;
           Index = 4'h0;
@@ -70,6 +73,7 @@ module aes_cipher_state(
           v.ready = 1;
           State_B_in = State_N;
           State_R_in = State_B_out;
+          State_M_in = '{default:'0};
           State_A_in = State_R_out;
           State_P = State_A_out;
           Index = Nr[3:0];
