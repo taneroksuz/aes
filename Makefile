@@ -17,6 +17,7 @@ run:
 	./main.o ${KLENGTH} ${NWORDS}
 
 simulate:
+	${BASEDIR}/rtl/initialize.sh ${BASEDIR} ${KLENGTH}
 	sim/run.sh ${BASEDIR} ${VERILATOR} ${SYSTEMC} ${CYCLES} ${WAVE}
 
 generate:
