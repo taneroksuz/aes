@@ -49,13 +49,13 @@ void compare(uint8_t *in,uint8_t *out, int num, int type)
         printf("Decrypt: ");
     for (int i=0; i<num; i=i+1)
     {
-        printf("%02X",in[i]);
+        printf("%02x",in[i]);
     }
     printf("\n");
     printf("Correct: ");
     for (int i=0; i<num; i=i+1)
     {
-        printf("%02X",out[i]);
+        printf("%02x",out[i]);
     }
     printf("\n");
     if (type)
