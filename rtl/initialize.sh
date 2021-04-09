@@ -2,6 +2,7 @@
 
 DIR=${1}
 KEYLENGTH=${2}
+NW=${3}
 
 if [[ "$KEYLENGTH" = "128" ]];
 then
@@ -31,5 +32,6 @@ echo "" >> $DIR/rtl/aes_const.sv
 echo "  parameter Nb = $NB;" >> $DIR/rtl/aes_const.sv
 echo "  parameter Nk = $NK;" >> $DIR/rtl/aes_const.sv
 echo "  parameter Nr = $NR;" >> $DIR/rtl/aes_const.sv
+echo "  parameter Nw = $NW;" >> $DIR/rtl/aes_const.sv
 echo "" >> $DIR/rtl/aes_const.sv
 echo "endpackage" >> $DIR/rtl/aes_const.sv

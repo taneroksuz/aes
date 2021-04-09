@@ -24,8 +24,8 @@ module aes_tb(
   integer i;
 
   logic [(32*Nk-1):0] key_block [0:0];
-  logic [(32*Nb-1):0] data_block [0:99];
-  logic [(32*Nb-1):0] encrypt_block [0:99];
+  logic [(32*Nb-1):0] data_block [0:(Nw-1)];
+  logic [(32*Nb-1):0] encrypt_block [0:(Nw-1)];
 
   initial begin
     $readmemh("key.txt", key_block);
@@ -95,7 +95,7 @@ module aes_tb(
           end
         end
       end else begin
-        if (i==99) begin
+        if (i==(Nw-1)) begin
           $display("Test success!");
           $finish;
         end else begin
