@@ -24,4 +24,4 @@ generate:
 	cd ${BASEDIR}/py; \
 	./generate.py -k ${KLENGTH} -w ${NWORDS};
 
-all: generate simulate
+all: generate compile run simulate

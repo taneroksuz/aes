@@ -17,3 +17,10 @@ There are two version of this algorithm. These are in pipeline and finite state 
 |:-----------|:---:|:---:|:---:|
 | LUT | 6794 | 8857 | 7866 |
 | FF | 412 | 469 | 543 |
+
+## Requirement
+Please install the python package with the following command in order to generate test cases.
+
+```console
+pip3 install --user pycryptodome
+```
