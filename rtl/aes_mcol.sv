@@ -26,16 +26,14 @@ module aes_mcol
     end
   endfunction
 
-  genvar i,j;
-
-  generate
-    for (j=0; j<Nb; j = j + 1) begin
-      assign State_out[4*j] = gmul(8'h02,State_in[4*j]) ^ gmul(8'h03,State_in[4*j+1]) ^ gmul(8'h01,State_in[4*j+2]) ^ gmul(8'h01,State_in[4*j+3]);
-      assign State_out[4*j+1] = gmul(8'h01,State_in[4*j]) ^ gmul(8'h02,State_in[4*j+1]) ^ gmul(8'h03,State_in[4*j+2]) ^ gmul(8'h01,State_in[4*j+3]);
-      assign State_out[4*j+2] = gmul(8'h01,State_in[4*j]) ^ gmul(8'h01,State_in[4*j+1]) ^ gmul(8'h02,State_in[4*j+2]) ^ gmul(8'h03,State_in[4*j+3]);
-      assign State_out[4*j+3] = gmul(8'h03,State_in[4*j]) ^ gmul(8'h01,State_in[4*j+1]) ^ gmul(8'h01,State_in[4*j+2]) ^ gmul(8'h02,State_in[4*j+3]);
+  always_latch begin
+    for (int i=0; i<Nb; i = i + 1) begin
+      State_out[4*i] = gmul(8'h02,State_in[4*i]) ^ gmul(8'h03,State_in[4*i+1]) ^ gmul(8'h01,State_in[4*i+2]) ^ gmul(8'h01,State_in[4*i+3]);
+      State_out[4*i+1] = gmul(8'h01,State_in[4*i]) ^ gmul(8'h02,State_in[4*i+1]) ^ gmul(8'h03,State_in[4*i+2]) ^ gmul(8'h01,State_in[4*i+3]);
+      State_out[4*i+2] = gmul(8'h01,State_in[4*i]) ^ gmul(8'h01,State_in[4*i+1]) ^ gmul(8'h02,State_in[4*i+2]) ^ gmul(8'h03,State_in[4*i+3]);
+      State_out[4*i+3] = gmul(8'h03,State_in[4*i]) ^ gmul(8'h01,State_in[4*i+1]) ^ gmul(8'h01,State_in[4*i+2]) ^ gmul(8'h02,State_in[4*i+3]);
     end
-  endgenerate
+  end
 
 
 endmodule

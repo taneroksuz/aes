@@ -44,28 +44,24 @@ void compare(uint8_t *in,uint8_t *out, int num, int type)
         }
     }
     if (type)
-        printf("Encrypt: ");
+        printf("\x1B[1;34mENCRYPT:\x1B[0m ");
     else
-        printf("Decrypt: ");
+        printf("\x1B[1;34mDECRYPT:\x1B[0m ");
     for (int i=0; i<num; i=i+1)
     {
         printf("%02x",in[i]);
     }
     printf("\n");
-    printf("Correct: ");
+    printf("\x1B[1;34mCORRECT:\x1B[0m ");
     for (int i=0; i<num; i=i+1)
     {
         printf("%02x",out[i]);
     }
     printf("\n");
-    if (type)
-        printf("Encryption ");
-    else
-        printf("Decryption ");
     if (res)
-        printf("success!\n");
+        printf("\x1B[1;32mTEST SUCCEEDED\x1B[0m\n");
     else
-        printf("failed!\n");
+        printf("\x1B[1;31mTEST FAILED\x1B[0m\n");
 }
 
 int main(int argc, char *argv[])

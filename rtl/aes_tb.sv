@@ -54,7 +54,14 @@ module aes_tb(
         if (aes_out.ready == 1) begin
           enable <= 1;
           state <= state + 1;
-          $display("Key: %X",key_block[0]);
+          $write("%c[1;34m",8'h1B);
+          $write("KEY: ");
+          $write("%c[0m",8'h1B);
+          $display("%x",key_block[0]);
+          $write("%c[1;34m",8'h1B);
+          $write("DATA: ");
+          $write("%c[0m",8'h1B);
+          $display("%x",data_block[0]);
         end
       end else if (state == 1) begin
         aes_in.key <= 0;
@@ -65,15 +72,24 @@ module aes_tb(
         if (aes_out.ready == 1) begin
           enable <= 1;
           state <= state + 1;
-          $display("Encrypt: %X",aes_out.result);
-          $display("Correct: %X",encrypt_block[i]);
-          result <= aes_out.result;
+          $write("%c[1;34m",8'h1B);
+          $write("ENCRYPT: ");
+          $write("%c[0m",8'h1B);
+          $display("%x",aes_out.result);
+          $write("%c[1;34m",8'h1B);
+          $write("CORRECT: ");
+          $write("%c[0m",8'h1B);
+          $display("%x",encrypt_block[i]);
           if (|(aes_out.result ^ encrypt_block[i]) == 0) begin
-            $display("Encryption success!");
+            $write("%c[1;32m",8'h1B);
+            $display("TEST SUCCEEDED");
+            $write("%c[0m",8'h1B);
           end else begin
-            $display("Encryption failed!");
-            $finish;
+            $write("%c[1;31m",8'h1B);
+            $display("TEST FAILED");
+            $write("%c[0m",8'h1B);
           end
+          result <= aes_out.result;
         end
       end else if (state == 2) begin
         aes_in.key <= 0;
@@ -84,19 +100,27 @@ module aes_tb(
         if (aes_out.ready == 1) begin
           enable <= 1;
           state <= state + 1;
-          $display("Decrypt: %X",aes_out.result);
-          $display("Correct: %X",data_block[i]);
+          $write("%c[1;34m",8'h1B);
+          $write("DECRYPT: ");
+          $write("%c[0m",8'h1B);
+          $display("%x",aes_out.result);
+          $write("%c[1;34m",8'h1B);
+          $write("CORRECT: ");
+          $write("%c[0m",8'h1B);
+          $display("%x",data_block[i]);
           orig <= aes_out.result;
           if (|(aes_out.result ^ data_block[i]) == 0) begin
-            $display("Decryption success!");
+            $write("%c[1;32m",8'h1B);
+            $display("TEST SUCCEEDED");
+            $write("%c[0m",8'h1B);
           end else begin
-            $display("Decryption failed!");
-            $finish;
+            $write("%c[1;31m",8'h1B);
+            $display("TEST FAILED");
+            $write("%c[0m",8'h1B);
           end
         end
       end else begin
         if (i==(Nw-1)) begin
-          $display("Test success!");
           $finish;
         end else begin
           i <= i+1;
