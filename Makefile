@@ -6,7 +6,7 @@ export BASEDIR ?= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 export MAXTIME ?= 1000000000
 export KLENGTH ?= 128
 export NWORDS ?= 100
-export WAVE ?= "off" #on off
+export WAVE ?= off# on off
 
 compile:
 	g++ -O3 ${BASEDIR}/cpp/aes.cpp ${BASEDIR}/cpp/main.cpp -o ${BASEDIR}/cpp/main
