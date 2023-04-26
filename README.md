@@ -6,17 +6,17 @@ There are two version of this algorithm. These are in pipeline and finite state 
 
 ### Pipelined Version
 
-| Key Length | 128 | 192 | 256 |
-|:-----------|:---:|:---:|:---:|
-| LUT | 38766 | 47945 | 55001 |
-| FF | 2763 | 3227 | 3691 |
+| Key Length | 128   | 192   | 256   |
+|:-----------|:-----:|:-----:|:-----:|
+| LUT        | 38766 | 47945 | 55001 |
+| FF         | 2763  | 3227  | 3691  |
 
 ### FSM Version
 
-| Key Length | 128 | 192 | 256 |
-|:-----------|:---:|:---:|:---:|
-| LUT | 6794 | 8857 | 7866 |
-| FF | 412 | 469 | 543 |
+| Key Length | 128  | 192  | 256  |
+|:-----------|:----:|:----:|:----:|
+| LUT        | 6794 | 8857 | 7866 |
+| FF         | 412  | 469  | 543  |
 
 ## Requirement
 Please install the python package with the following command in order to generate test cases.
