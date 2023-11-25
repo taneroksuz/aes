@@ -72,7 +72,19 @@ int main(int argc, char *argv[])
     ifstream encrypt_file("encrypt.txt", fstream::in);
 
     int Nb = 4;
-    int Nk = atoi(argv[1])/32;
+    int Nk;
+    if (atoi(argv[1]) == 0)
+    {
+        Nk = 4;
+    }
+    else if (atoi(argv[1]) == 1)
+    {
+        Nk = 6;
+    }
+    else if (atoi(argv[1]) == 2)
+    {
+        Nk = 8;
+    }
     int Nw = atoi(argv[2]);
 
     uint8_t *key = (uint8_t *) malloc(4*Nk*sizeof(uint8_t));

@@ -17,14 +17,17 @@ parser.add_argument("-w","--word_number", help="number of words in bits", type=i
 
 args = parser.parse_args()
 
-if (args.key_length != 128) and (args.key_length != 192) and (args.key_length != 256):
-    print("Key length: ",args.key_length," is invalid!")
-    exit(1)
+if (args.key_length == 0):
+    key = Random.new().read(16)
+elif (args.key_length == 1):
+    key = Random.new().read(24)
+elif (args.key_length == 2):
+    key = Random.new().read(32)
+
 if (args.word_number is None) or (args.word_number<1):
     print("Word number: ",args.word_number," is invalid!")
     exit(1)
 
-key = Random.new().read(int(args.key_length/8))
 f = open("key.txt", "w")
 f.writelines(key.hex()+"\n")
 f.close()

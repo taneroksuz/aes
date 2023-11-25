@@ -26,7 +26,7 @@ module aes_imcol
     end
   endfunction
 
-  always_latch begin
+  always_comb begin
     for (int i=0; i<Nb; i = i + 1) begin
       State_out[4*i] = gmul(8'h0e,State_in[4*i]) ^ gmul(8'h0b,State_in[4*i+1]) ^ gmul(8'h0d,State_in[4*i+2]) ^ gmul(8'h09,State_in[4*i+3]);
       State_out[4*i+1] = gmul(8'h09,State_in[4*i]) ^ gmul(8'h0e,State_in[4*i+1]) ^ gmul(8'h0b,State_in[4*i+2]) ^ gmul(8'h0d,State_in[4*i+3]);

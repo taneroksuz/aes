@@ -1,12 +1,15 @@
-default: none
+default: all
 
 export VERILATOR ?= /opt/verilator/bin/verilator
 export SYSTEMC ?= /opt/systemc
 export BASEDIR ?= $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
+export KEY_LENGTH ?= 0# 0 -> SHA1, 1 -> SHA2-256, 1 -> SHA2-512
+
+export CASE_NUMBER ?= 1
+
 export MAXTIME ?= 1000000000
-export KLENGTH ?= 128
-export NWORDS ?= 100
-export WAVE ?= off# on off
+export DUMP ?= 0# 1 -> enable, 0 -> disable
 
 compile:
 	g++ -O3 ${BASEDIR}/cpp/aes.cpp ${BASEDIR}/cpp/main.cpp -o ${BASEDIR}/cpp/main
@@ -14,7 +17,7 @@ compile:
 run:
 	cp -r ${BASEDIR}/py/*.txt ${BASEDIR}/cpp/; \
 	cd ${BASEDIR}/cpp; \
-	./main ${KLENGTH} ${NWORDS}
+	./main ${KEY_LENGTH} ${CASE_NUMBER}
 
 simulate:
 	${BASEDIR}/rtl/initialize.sh; \
@@ -22,6 +25,6 @@ simulate:
 
 generate:
 	cd ${BASEDIR}/py; \
-	./generate.py -k ${KLENGTH} -w ${NWORDS};
+	./generate.py -k ${KEY_LENGTH} -w ${CASE_NUMBER};
 
 all: generate compile run simulate
