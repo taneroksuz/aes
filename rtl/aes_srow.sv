@@ -1,10 +1,14 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_srow
+`include "aes_config.svh"
+
+module aes_srow #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
 (
-  input logic [7:0] State_in [0:(4*Nb-1)],
-  output logic [7:0] State_out [0:(4*Nb-1)]
+  input logic [7:0] State_in [0:(15)],
+  output logic [7:0] State_out [0:(15)]
 );
   timeunit 1ns;
   timeprecision 1ps;
@@ -14,35 +18,21 @@ module aes_srow
   logic [2:0] C [0:2];
 
   always_comb begin
-    if (Nb == 4) begin
-      C[0] = 1;
-      C[1] = 2;
-      C[2] = 3;
-    end else if (Nb == 6) begin
-      C[0] = 2;
-      C[1] = 2;
-      C[2] = 3;
-    end else if (Nb == 8) begin
-      C[0] = 3;
-      C[1] = 3;
-      C[2] = 4;
-    end else begin
-      C[0] = 0;
-      C[1] = 0;
-      C[2] = 0;
-    end
+    C[0] = 1;
+    C[1] = 2;
+    C[2] = 3;
   end
 
   generate
-    for (j=0; j<Nb; j = j + 1) begin
+    for (j=0; j<4; j = j + 1) begin
       assign State_out[4*j] = State_in[4*j];
     end
   endgenerate
 
   generate
-    for (j=0; j<Nb; j = j + 1) begin
+    for (j=0; j<4; j = j + 1) begin
       for (i = 1; i < 4; i = i + 1) begin
-        assign State_out[4*j+i] = State_in[4*((j+C[i-1])%Nb)+i];
+        assign State_out[4*j+i] = State_in[4*((j+C[i-1])%4)+i];
       end
     end
   endgenerate

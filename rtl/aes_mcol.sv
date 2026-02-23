@@ -1,12 +1,16 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_mcol
+`include "aes_config.svh"
+
+module aes_mcol #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
 (
-  input logic [7:0] State_in [0:(4*Nb-1)],
+  input logic [7:0] State_in [0:(15)],
   input logic [7 : 0] EXP3 [0:255],
   input logic [7 : 0] LN3 [0:255],
-  output logic [7:0] State_out [0:(4*Nb-1)]
+  output logic [7:0] State_out [0:(15)]
 );
   timeunit 1ns;
   timeprecision 1ps;
@@ -27,7 +31,7 @@ module aes_mcol
   endfunction
 
   always_comb begin
-    for (int i=0; i<Nb; i = i + 1) begin
+    for (int i=0; i<4; i = i + 1) begin
       State_out[4*i] = gmul(8'h02,State_in[4*i]) ^ gmul(8'h03,State_in[4*i+1]) ^ gmul(8'h01,State_in[4*i+2]) ^ gmul(8'h01,State_in[4*i+3]);
       State_out[4*i+1] = gmul(8'h01,State_in[4*i]) ^ gmul(8'h02,State_in[4*i+1]) ^ gmul(8'h03,State_in[4*i+2]) ^ gmul(8'h01,State_in[4*i+3]);
       State_out[4*i+2] = gmul(8'h01,State_in[4*i]) ^ gmul(8'h01,State_in[4*i+1]) ^ gmul(8'h02,State_in[4*i+2]) ^ gmul(8'h03,State_in[4*i+3]);

@@ -67,27 +67,26 @@ void compare(uint8_t *in,uint8_t *out, int num, int type)
 int main(int argc, char *argv[])
 {
 
-    ifstream key_file("key.txt", fstream::in);
-    ifstream data_file("data.txt", fstream::in);
-    ifstream encrypt_file("encrypt.txt", fstream::in);
+    ifstream key_file("./out/key.hex", fstream::in);
+    ifstream data_file("./out/plaintext.hex", fstream::in);
+    ifstream encrypt_file("./out/ciphertext.hex", fstream::in);
 
-    int Nb = 4;
-    int Nk;
-    if (atoi(argv[1]) == 0)
+    int NK;
+    if (atoi(argv[1]) == 128)
     {
-        Nk = 4;
+        NK = 4;
     }
-    else if (atoi(argv[1]) == 1)
+    else if (atoi(argv[1]) == 192)
     {
-        Nk = 6;
+        NK = 6;
     }
-    else if (atoi(argv[1]) == 2)
+    else if (atoi(argv[1]) == 256)
     {
-        Nk = 8;
+        NK = 8;
     }
-    int Nw = atoi(argv[2]);
+    int NW = atoi(argv[2])/16;
 
-    uint8_t *key = (uint8_t *) malloc(4*Nk*sizeof(uint8_t));
+    uint8_t *key = (uint8_t *) malloc(4*NK*sizeof(uint8_t));
     uint8_t *dat = (uint8_t *) malloc(16*sizeof(uint8_t));
     uint8_t *enc = (uint8_t *) malloc(16*sizeof(uint8_t));
     uint8_t *out = (uint8_t *) malloc(16*sizeof(uint8_t));
@@ -98,11 +97,11 @@ int main(int argc, char *argv[])
     string encrypt_str;
 
     getline(key_file,key_str);
-    get(key_str,key,4*Nk);
+    get(key_str,key,4*NK);
 
-    AES *aes = new AES(4,Nk,key);
+    AES *aes = new AES(NK,key);
 
-    for (int i=0; i<Nw; i++)
+    for (int i=0; i<NW; i++)
     {
         getline(data_file,data_str);
         getline(encrypt_file,encrypt_str);

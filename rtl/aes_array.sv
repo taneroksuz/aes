@@ -1,4 +1,6 @@
-import aes_const::*;
+
+
+`include "aes_config.svh"
 
 module aes_array(
   output logic [7:0] SBox [0:255],

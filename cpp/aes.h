@@ -11,15 +11,14 @@ class AES
 {
     private:
 
-        int Nb; // 4,6,8
-        int Nk; // 4,6,8
-        int Nr; // 10,12,14
+        int NK; // 4,6,8
+        int NR; // 10,12,14
 
         uint8_t *Key;
         uint32_t *Word;
         // uint32_t *Rcon;
 
-        int NumRounds(int Nb,int Nk);
+        int NumRounds(int NK);
 
         uint32_t RoundConstant(int i);
 
@@ -51,7 +50,7 @@ class AES
 
     public:
 
-        AES(int Nb,int Nk,uint8_t *key);
+        AES(int NK,uint8_t *key);
 
         void Cipher(uint8_t *in,uint8_t *out);
 

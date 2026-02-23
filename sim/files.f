@@ -1,5 +1,4 @@
-../../rtl/aes_const.sv
-../../rtl/aes_wire.sv
+../../rtl/aes_config.svh
 ../../rtl/aes_xkey.sv
 ../../rtl/aes_xdata.sv
 ../../rtl/aes_cdata.sv
@@ -23,4 +22,3 @@
 ../../rtl/aes_icipher_state.sv
 ../../rtl/aes.sv
 ../../rtl/aes_state.sv
-../../rtl/aes_tb.sv

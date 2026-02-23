@@ -1,16 +1,21 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_cipher_state(
+`include "aes_config.svh"
+
+module aes_cipher_state #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
+(
   input logic rst,
   input logic clk,
   input logic [7 : 0] SBox [0:255],
   input logic [7 : 0] EXP3 [0:255],
   input logic [7 : 0] LN3 [0:255],
-  input logic [31:0] KExp [0:(Nb*(Nr+1)-1)],
-  input logic [7 : 0] Data_in [0:(4*Nb-1)],
+  input logic [31:0] KExp [0:(4*(NR+1)-1)],
+  input logic [7 : 0] Data_in [0:(15)],
   input logic [0 : 0] Enable,
-  output logic [7 : 0] Data_out [0:(4*Nb-1)],
+  output logic [7 : 0] Data_out [0:(15)],
   output logic [0 : 0] Ready_out
 );
   timeunit 1ns;
@@ -29,18 +34,18 @@ module aes_cipher_state(
   reg_type r,rin;
   reg_type v;
 
-  logic [7 : 0] State_B_in [0:(4*Nb-1)];
-  logic [7 : 0] State_R_in [0:(4*Nb-1)];
-  logic [7 : 0] State_M_in [0:(4*Nb-1)];
-  logic [7 : 0] State_A_in [0:(4*Nb-1)];
+  logic [7 : 0] State_B_in [0:(15)];
+  logic [7 : 0] State_R_in [0:(15)];
+  logic [7 : 0] State_M_in [0:(15)];
+  logic [7 : 0] State_A_in [0:(15)];
 
-  logic [7 : 0] State_B_out [0:(4*Nb-1)];
-  logic [7 : 0] State_R_out [0:(4*Nb-1)];
-  logic [7 : 0] State_M_out [0:(4*Nb-1)];
-  logic [7 : 0] State_A_out [0:(4*Nb-1)];
+  logic [7 : 0] State_B_out [0:(15)];
+  logic [7 : 0] State_R_out [0:(15)];
+  logic [7 : 0] State_M_out [0:(15)];
+  logic [7 : 0] State_A_out [0:(15)];
 
-  logic [7 : 0] State_P [0:(4*Nb-1)];
-  logic [7 : 0] State_N [0:(4*Nb-1)];
+  logic [7 : 0] State_P [0:(15)];
+  logic [7 : 0] State_N [0:(15)];
 
   logic [3 : 0] Index;
 
@@ -67,7 +72,7 @@ module aes_cipher_state(
           State_P = State_A_out;
           Index = 4'h0;
         end
-      Nr :
+      NR :
         begin
           v.state = 0;
           v.ready = 1;
@@ -76,7 +81,7 @@ module aes_cipher_state(
           State_M_in = '{default:'0};
           State_A_in = State_R_out;
           State_P = State_A_out;
-          Index = Nr[3:0];
+          Index = NR[3:0];
         end
       default:
         begin

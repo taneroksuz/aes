@@ -1,29 +1,33 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_kexp
+`include "aes_config.svh"
+
+module aes_kexp #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
 (
   input logic rst,
   input logic clk,
-  input logic [7:0] Key [0:(4*Nk-1)],
+  input logic [7:0] Key [0:(4*NK-1)],
   input logic [7:0] RCon [0:15],
   input logic [7:0] SBox [0:255],
   input logic [0:0] Enable,
-  output logic [31:0] KExp [0:(Nb*(Nr+1)-1)],
+  output logic [31:0] KExp [0:(4*(NR+1)-1)],
   output logic [0 : 0] Ready_out
 );
   timeunit 1ns;
   timeprecision 1ps;
 
-  localparam Nx = ((Nb*(Nr+1))+Nk-1)/Nk;
+  localparam NX = ((4*(NR+1))+NK-1)/NK;
 
-  logic [31 : 0] KExp_R [0:(Nb*(Nr+1)-1)];
+  logic [31 : 0] KExp_R [0:(4*(NR+1)-1)];
 
-  logic [31 : 0] KExp_P [0:(Nx-1)][0:(Nk-1)];
-  logic [31 : 0] KExp_N [0:(Nx-1)][0:(Nk-1)];
+  logic [31 : 0] KExp_P [0:(NX-1)][0:(NK-1)];
+  logic [31 : 0] KExp_N [0:(NX-1)][0:(NK-1)];
 
-  logic [0 : 0] Ready_P [0:(Nx-1)];
-  logic [0 : 0] Ready_N [0:(Nx-1)];
+  logic [0 : 0] Ready_P [0:(NX-1)];
+  logic [0 : 0] Ready_N [0:(NX-1)];
 
   function [31:0] RotWord;
     input [31:0] Word;
@@ -59,16 +63,18 @@ module aes_kexp
   genvar i,j;
 
   generate
-    for (i = 0; i < Nk; i = i + 1) begin
+    for (i = 0; i < NK; i = i + 1) begin
       always_comb begin
         if (Enable == 1) begin
           KExp_P[0][i] = {Key[4*i],Key[4*i+1],Key[4*i+2],Key[4*i+3]};
+        end else begin
+          KExp_P[0] = KExp_N[0];
         end
       end
     end
   endgenerate
   always_comb begin
-    KExp_R[0:(Nk-1)] = KExp_P[0];
+    KExp_R[0:(NK-1)] = KExp_P[0];
     Ready_P[0] = Enable;
   end
   always_ff @(posedge clk) begin
@@ -77,18 +83,18 @@ module aes_kexp
   end
 
   generate
-    for (i = 1; i < Nx; i = i + 1) begin
-      for (j = 0; j < Nk; j = j + 1) begin
-        if (j % Nk == 0) begin
-          assign KExp_P[i][j] = KExp_N[i-1][j] ^ SubWord(RotWord(KExp_P[i-1][Nk-1])) ^ {RCon[i],24'h0};
-        end else if (Nk > 6 && j % Nk == 4) begin
+    for (i = 1; i < NX; i = i + 1) begin
+      for (j = 0; j < NK; j = j + 1) begin
+        if (j % NK == 0) begin
+          assign KExp_P[i][j] = KExp_N[i-1][j] ^ SubWord(RotWord(KExp_P[i-1][NK-1])) ^ {RCon[i],24'h0};
+        end else if (NK > 6 && j % NK == 4) begin
           assign KExp_P[i][j] = KExp_N[i-1][j] ^ SubWord(KExp_P[i][j-1]);
         end else begin
           assign KExp_P[i][j] = KExp_N[i-1][j] ^ KExp_P[i][j-1];
         end
       end
       always_comb begin
-        KExp_R[Nk*i:(Min(Nk*(i+1),Nb*(Nr+1))-1)] = KExp_P[i][0:(Min(Nk*(i+1),Nb*(Nr+1))-Nk*i-1)];
+        KExp_R[NK*i:(Min(NK*(i+1),4*(NR+1))-1)] = KExp_P[i][0:(Min(NK*(i+1),4*(NR+1))-NK*i-1)];
         Ready_P[i] = Ready_N[i-1];
       end
       always_ff @(posedge clk) begin
@@ -100,7 +106,7 @@ module aes_kexp
 
   always_comb begin
     KExp = KExp_R;
-    Ready_out = Ready_N[Nx-1];
+    Ready_out = Ready_N[NX-1];
   end
 
 endmodule

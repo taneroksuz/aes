@@ -1,16 +1,21 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_cipher(
+`include "aes_config.svh"
+
+module aes_cipher #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
+(
   input logic rst,
   input logic clk,
   input logic [7 : 0] SBox [0:255],
   input logic [7 : 0] EXP3 [0:255],
   input logic [7 : 0] LN3 [0:255],
-  input logic [31:0] KExp [0:(Nb*(Nr+1)-1)],
-  input logic [7 : 0] Data_in [0:(4*Nb-1)],
+  input logic [31:0] KExp [0:(4*(NR+1)-1)],
+  input logic [7 : 0] Data_in [0:(15)],
   input logic [0 : 0] Enable,
-  output logic [7 : 0] Data_out [0:(4*Nb-1)],
+  output logic [7 : 0] Data_out [0:(15)],
   output logic [0 : 0] Ready_out
 );
   timeunit 1ns;
@@ -18,11 +23,11 @@ module aes_cipher(
 
   genvar i;
 
-  logic [7 : 0] State [0:Nr-1][0:(4*Nb-1)];
-  logic [7 : 0] State_Reg [0:Nr-1][0:(4*Nb-1)];
+  logic [7 : 0] State [0:NR-1][0:(15)];
+  logic [7 : 0] State_Reg [0:NR-1][0:(15)];
 
-  logic [0 : 0] Ready [0:Nr-1];
-  logic [0 : 0] Ready_Reg [0:Nr-1];
+  logic [0 : 0] Ready [0:NR-1];
+  logic [0 : 0] Ready_Reg [0:NR-1];
 
   aes_arkey aes_arkey_comp
   (
@@ -36,7 +41,7 @@ module aes_cipher(
   end
 
   generate
-    for (i=1; i<Nr; i=i+1) begin
+    for (i=1; i<NR; i=i+1) begin
       always_ff @(posedge clk) begin
         State_Reg[i-1] <= State[i-1];
         Ready_Reg[i-1] <= Ready[i-1];
@@ -58,19 +63,19 @@ module aes_cipher(
   endgenerate;
 
   always_ff @(posedge clk) begin
-    State_Reg[Nr-1] <= State[Nr-1];
-    Ready_Reg[Nr-1] <= Ready[Nr-1];
+    State_Reg[NR-1] <= State[NR-1];
+    Ready_Reg[NR-1] <= Ready[NR-1];
   end
   aes_fround aes_fround_comp
   (
-    .State_in (State_Reg[Nr-1]),
-    .Index (Nr[3:0]),
+    .State_in (State_Reg[NR-1]),
+    .Index (NR[3:0]),
     .KExp (KExp),
     .SBox (SBox),
     .State_out (Data_out)
   );
   always_comb begin
-    Ready_out = Ready_Reg[Nr-1];
+    Ready_out = Ready_Reg[NR-1];
   end
 
 endmodule

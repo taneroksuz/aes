@@ -1,22 +1,26 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_iround
+`include "aes_config.svh"
+
+module aes_iround #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
 (
-  input logic [7:0] State_in [0:(4*Nb-1)],
+  input logic [7:0] State_in [0:(15)],
   input logic [3:0] Index,
-  input logic [31:0] KExp [0:(Nb*(Nr+1)-1)],
+  input logic [31:0] KExp [0:(4*(NR+1)-1)],
   input logic [7:0] IBox [0:255],
   input logic [7:0] EXP3 [0:255],
   input logic [7:0] LN3 [0:255],
-  output logic [7:0] State_out [0:(4*Nb-1)]
+  output logic [7:0] State_out [0:(15)]
 );
   timeunit 1ns;
   timeprecision 1ps;
 
-  logic [7 : 0] State_R [0:(4*Nb-1)];
-  logic [7 : 0] State_B [0:(4*Nb-1)];
-  logic [7 : 0] State_A [0:(4*Nb-1)];
+  logic [7 : 0] State_R [0:(15)];
+  logic [7 : 0] State_B [0:(15)];
+  logic [7 : 0] State_A [0:(15)];
 
   aes_isrow aes_isrow_comp
   (

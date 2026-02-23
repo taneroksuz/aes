@@ -1,17 +1,28 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_state
+`include "aes_config.svh"
+
+module aes_state #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
 (
-  input logic rst,
-  input logic clk,
-  input aes_in_type aes_in,
-  output aes_out_type aes_out
+  input  logic rst,
+  input  logic clk,
+  input  logic start,
+  input  logic encrypt,
+  input  logic [KEY_BITS-1:0] key,
+  input  logic [127:0] data_in,
+  output logic [127:0] data_out,
+  output logic done,
+  output logic busy,
+  output logic error,
+  output logic ready
 );
   timeunit 1ns;
   timeprecision 1ps;
 
-  logic [31:0] kexp [0:(Nb*(Nr+1)-1)];
+  logic [31:0] kexp [0:(4*(NR+1)-1)];
 
   logic [7 : 0] sbox [0:255];
   logic [7 : 0] ibox [0:255];
@@ -19,13 +30,13 @@ module aes_state
   logic [7 : 0] ln3 [0:255];
   logic [7 : 0] rcon [0:15];
 
-  logic [7:0] key_array[0:(4*Nk-1)];
-  logic [7:0] data_array[0:(4*Nb-1)];
-  logic [7:0] cipher_array[0:(4*Nb-1)];
-  logic [7:0] icipher_array[0:(4*Nb-1)];
+  logic [7:0] key_array[0:(4*NK-1)];
+  logic [7:0] data_array[0:(15)];
+  logic [7:0] cipher_array[0:(15)];
+  logic [7:0] icipher_array[0:(15)];
 
-  logic [(32*Nb-1):0] cipher_data;
-  logic [(32*Nb-1):0] icipher_data;
+  logic [127:0] cipher_data;
+  logic [127:0] icipher_data;
 
   logic [0 : 0] kexp_enable;
   logic [0 : 0] cipher_enable;
@@ -46,13 +57,13 @@ module aes_state
 
   aes_xkey aes_xkey_comp
   (
-    .key_in (aes_in.key),
+    .key_in (key),
     .key_out (key_array)
   );
 
   aes_xdata aes_xdata_comp
   (
-    .data_in (aes_in.data),
+    .data_in (data_in),
     .data_out (data_array)
   );
 
@@ -107,41 +118,5 @@ module aes_state
     .data_in (icipher_array),
     .data_out (icipher_data)
   );
-
-  always_comb begin
-
-    kexp_enable = 0;
-    cipher_enable = 0;
-    icipher_enable = 0;
-
-    if (aes_in.enable == 1) begin
-      if (aes_in.func == 1) begin
-        kexp_enable = 1;
-      end else if (aes_in.func == 2) begin
-        cipher_enable = 1;
-      end else if (aes_in.func == 3) begin
-        icipher_enable = 1;
-      end
-    end
-
-  end
-
-  always_comb begin
-
-    if (kexp_ready == 1) begin
-      aes_out.result = 0;
-      aes_out.ready = kexp_ready;
-    end else if (cipher_ready == 1) begin
-      aes_out.result = cipher_data;
-      aes_out.ready = cipher_ready;
-    end else if (icipher_ready == 1) begin
-      aes_out.result = icipher_data;
-      aes_out.ready = icipher_ready;
-    end else begin
-      aes_out.result = 0;
-      aes_out.ready = 0;
-    end
-
-  end
 
 endmodule

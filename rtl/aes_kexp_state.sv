@@ -1,25 +1,29 @@
-import aes_const::*;
-import aes_wire::*;
 
-module aes_kexp_state
+`include "aes_config.svh"
+
+module aes_kexp_state #(
+  parameter KEY_BITS = `AES_KEY_BITS,
+  parameter NK       = `AES_NK,
+  parameter NR       = `AES_NR
+)
 (
   input logic rst,
   input logic clk,
-  input logic [7:0] Key [0:(4*Nk-1)],
+  input logic [7:0] Key [0:(4*NK-1)],
   input logic [7:0] RCon [0:15],
   input logic [7:0] SBox [0:255],
   input logic [0:0] Enable,
-  output logic [31:0] KExp [0:(Nb*(Nr+1)-1)],
+  output logic [31:0] KExp [0:(4*(NR+1)-1)],
   output logic [0 : 0] Ready_out
 );
   timeunit 1ns;
   timeprecision 1ps;
 
-  logic [31 : 0] KExp_R [0:(Nb*(Nr+1)-1)];
-  logic [31 : 0] KExp_P [0:(Nk-1)];
-  logic [31 : 0] KExp_N [0:(Nk-1)];
+  logic [31 : 0] KExp_R [0:(4*(NR+1)-1)];
+  logic [31 : 0] KExp_P [0:(NK-1)];
+  logic [31 : 0] KExp_N [0:(NK-1)];
 
-  localparam LENGTH = (Nb*(Nr+1));
+  localparam LENGTH = (4*(NR+1));
   localparam WIDTH = $clog2(LENGTH);
 
   typedef struct packed{
@@ -70,22 +74,22 @@ module aes_kexp_state
         if (Enable == 1) begin
           v.state = 1;
           v.enable = 1;
-          for (int i=0; i<Nk; i=i+1) begin
+          for (int i=0; i<NK; i=i+1) begin
             KExp_P[i] = {Key[4*i],Key[4*i+1],Key[4*i+2],Key[4*i+3]};
           end
         end
       end
       default : begin
-        for (int i=0; i<Nk; i=i+1) begin
+        for (int i=0; i<NK; i=i+1) begin
           if (i == 0) begin
-            KExp_P[i] = KExp_N[i] ^ SubWord(RotWord(KExp_N[Nk-1])) ^ {RCon[v.state],24'h0};
-          end else if (Nk > 6 && i == 4) begin
+            KExp_P[i] = KExp_N[i] ^ SubWord(RotWord(KExp_N[NK-1])) ^ {RCon[v.state],24'h0};
+          end else if (NK > 6 && i == 4) begin
             KExp_P[i] = KExp_N[i] ^ SubWord(KExp_P[i-1]);
           end else begin
             KExp_P[i] = KExp_N[i] ^ KExp_P[i-1];
           end
         end
-        if (v.index > (Nb*(Nr+1)-Nk)) begin
+        if (v.index > (4*(NR+1)-NK)) begin
           v.state = 0;
           v.ready = 1;
         end else begin
@@ -95,13 +99,13 @@ module aes_kexp_state
       end
     endcase
 
-    for (int i=0; i<Nk; i=i+1) begin
-      if (((v.index+i[(WIDTH-1):0]) < Nb*(Nr+1)) && (v.enable == 1)) begin
+    for (int i=0; i<NK; i=i+1) begin
+      if (((v.index+i[(WIDTH-1):0]) < 4*(NR+1)) && (v.enable == 1)) begin
         KExp_R[v.index+i[(WIDTH-1):0]] = KExp_P[i];
       end
     end
 
-    v.index = v.index + Nk;
+    v.index = v.index + NK;
 
     rin = v;
 

@@ -77,59 +77,34 @@ uint8_t LN_3[256] = {
 uint8_t Rcon[16] = {
 0x00,0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36,0x6c,0xd8,0xab,0x4d,0x9a};
 
-AES::AES(int Nb,int Nk, uint8_t *key)
+AES::AES(int NK, uint8_t *key)
 {
-    this->Nb = Nb;
-    this->Nk = Nk;
-    this->Nr = NumRounds(Nb,Nk);
+    this->NK = NK;
+    this->NR = NumRounds(NK);
 
-    this->Key = (uint8_t *) malloc(4*this->Nk*sizeof(uint8_t));
+    this->Key = (uint8_t *) malloc(4*this->NK*sizeof(uint8_t));
 
-    for (int i=0; i<4*this->Nk; i++)
+    for (int i=0; i<4*this->NK; i++)
     {
       this->Key[i] = key[i];
     }
 
-    this->Word = (uint32_t *) malloc(this->Nb*(this->Nr+1)*sizeof(uint32_t));
+    this->Word = (uint32_t *) malloc(4*(this->NR+1)*sizeof(uint32_t));
 
     this->KeyExpansion();
 }
 
-int AES::NumRounds(int Nb,int Nk)
+int AES::NumRounds(int NK)
 {
-    if (Nb == 4 && Nk == 4)
+    if (NK == 4)
     {
         return 10;
     }
-    else if (Nb == 4 && Nk == 6)
+    else if (NK == 6)
     {
         return 12;
     }
-    else if (Nb == 4 && Nk == 8)
-    {
-        return 14;
-    }
-    else if (Nb == 6 && Nk == 4)
-    {
-        return 12;
-    }
-    else if (Nb == 6 && Nk == 6)
-    {
-        return 12;
-    }
-    else if (Nb == 6 && Nk == 8)
-    {
-        return 14;
-    }
-    else if (Nb == 8 && Nk == 4)
-    {
-        return 14;
-    }
-    else if (Nb == 8 && Nk == 6)
-    {
-        return 14;
-    }
-    else if (Nb == 8 && Nk == 8)
+    else if (NK == 8)
     {
         return 14;
     }
@@ -185,14 +160,14 @@ uint32_t AES::RoundConstant(int i)
 void AES::AddRoundkey(uint8_t *state,int round)
 {
     uint32_t temp;
-    for (int j=0; j<this->Nb; j++)
+    for (int j=0; j<4; j++)
     {
-        temp = this->Word[round*this->Nb+j];
+        temp = this->Word[round*4+j];
         for (int i=0; i<4; i++)
         {
-            uint8_t index = state[i*this->Nb+j];
+            uint8_t index = state[i*4+j];
             uint8_t key = (temp >> ((3-i)*8)) & 0xFF;
-            state[i*this->Nb+j] = key ^ index;
+            state[i*4+j] = key ^ index;
         }
     }
 }
@@ -201,11 +176,11 @@ void AES::MixColumns(uint8_t *state)
 {
     uint8_t *column = (uint8_t *) malloc(4*sizeof(uint8_t));
     uint8_t *last = (uint8_t *) malloc(4*sizeof(uint8_t));
-    for (int j=0; j<this->Nb; j++)
+    for (int j=0; j<4; j++)
     {
         for (int i=0; i<4; i++)
         {
-            column[i] = state[i*this->Nb+j];
+            column[i] = state[i*4+j];
         }
         last[0] = GaloisMul(0x02,column[0]) ^ GaloisMul(0x03,column[1]) ^ GaloisMul(0x01,column[2]) ^ GaloisMul(0x01,column[3]);
         last[1] = GaloisMul(0x01,column[0]) ^ GaloisMul(0x02,column[1]) ^ GaloisMul(0x03,column[2]) ^ GaloisMul(0x01,column[3]);
@@ -213,42 +188,24 @@ void AES::MixColumns(uint8_t *state)
         last[3] = GaloisMul(0x03,column[0]) ^ GaloisMul(0x01,column[1]) ^ GaloisMul(0x01,column[2]) ^ GaloisMul(0x02,column[3]);
         for (int i=0; i<4; i++)
         {
-            state[i*this->Nb+j] = last[i];
+            state[i*4+j] = last[i];
         }
     }
 }
 
 void AES::ShiftRows(uint8_t *state)
 {
-    int C[3] = {0,0,0};
-    if (this->Nb == 4)
-    {
-        C[0] = 1;
-        C[1] = 2;
-        C[2] = 3;
-    }
-    else if (this->Nb == 6)
-    {
-        C[0] = 2;
-        C[1] = 2;
-        C[2] = 3;
-    }
-    else if (this->Nb == 8)
-    {
-        C[0] = 3;
-        C[1] = 3;
-        C[2] = 4;
-    }
-    uint8_t *row = (uint8_t *) malloc(Nb*sizeof(uint8_t));
+    int C[3] = {1,2,3};
+    uint8_t *row = (uint8_t *) malloc(4*sizeof(uint8_t));
     for (int i=1; i<4; i++)
     {
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
-            row[j] = state[i*this->Nb+((j+C[i-1])%this->Nb)];
+            row[j] = state[i*4+((j+C[i-1])%4)];
         }
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
-            state[i*this->Nb+j] = row[j];
+            state[i*4+j] = row[j];
         }
     }
 }
@@ -257,9 +214,9 @@ void AES::SubBytes(uint8_t *state)
 {
     for (int i=0; i<4; i++)
     {
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
-            state[i*this->Nb+j] = S_Box[state[i*this->Nb+j]];
+            state[i*4+j] = S_Box[state[i*4+j]];
         }
     }
 }
@@ -268,11 +225,11 @@ void AES::InvMixColumns(uint8_t *state)
 {
     uint8_t *column = (uint8_t *) malloc(4*sizeof(uint8_t));
     uint8_t *last = (uint8_t *) malloc(4*sizeof(uint8_t));
-    for (int j=0; j<this->Nb; j++)
+    for (int j=0; j<4; j++)
     {
         for (int i=0; i<4; i++)
         {
-            column[i] = state[i*this->Nb+j];
+            column[i] = state[i*4+j];
         }
         last[0] = GaloisMul(0x0e,column[0]) ^ GaloisMul(0x0b,column[1]) ^ GaloisMul(0x0d,column[2]) ^ GaloisMul(0x09,column[3]);
         last[1] = GaloisMul(0x09,column[0]) ^ GaloisMul(0x0e,column[1]) ^ GaloisMul(0x0b,column[2]) ^ GaloisMul(0x0d,column[3]);
@@ -280,41 +237,23 @@ void AES::InvMixColumns(uint8_t *state)
         last[3] = GaloisMul(0x0b,column[0]) ^ GaloisMul(0x0d,column[1]) ^ GaloisMul(0x09,column[2]) ^ GaloisMul(0x0e,column[3]);
         for (int i=0; i<4; i++)
         {
-            state[i*this->Nb+j] = last[i];
+            state[i*4+j] = last[i];
         }
     }
 }
 void AES::InvShiftRows(uint8_t *state)
 {
-    int C[3] = {0,0,0};
-    if (this->Nb == 4)
-    {
-        C[0] = 1;
-        C[1] = 2;
-        C[2] = 3;
-    }
-    else if (this->Nb == 6)
-    {
-        C[0] = 2;
-        C[1] = 2;
-        C[2] = 3;
-    }
-    else if (this->Nb == 8)
-    {
-        C[0] = 3;
-        C[1] = 3;
-        C[2] = 4;
-    }
-    uint8_t *row = (uint8_t *) malloc(Nb*sizeof(uint8_t));
+    int C[3] = {1,2,3};
+    uint8_t *row = (uint8_t *) malloc(4*sizeof(uint8_t));
     for (int i=1; i<4; i++)
     {
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
-            row[j] = state[i*this->Nb+((j+this->Nb-C[i-1])%this->Nb)];
+            row[j] = state[i*4+((j+4-C[i-1])%4)];
         }
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
-            state[i*this->Nb+j] = row[j];
+            state[i*4+j] = row[j];
         }
     }
 }
@@ -323,9 +262,9 @@ void AES::InvSubBytes(uint8_t *state)
 {
     for (int i=0; i<4; i++)
     {
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
-            state[i*this->Nb+j] = Inv_S_Box[state[i*this->Nb+j]];
+            state[i*4+j] = Inv_S_Box[state[i*4+j]];
         }
     }
 }
@@ -358,14 +297,14 @@ void AES::print_state(uint8_t *state)
 #ifdef LINE
     for (int i=0; i<4; i++)
     {
-        for (int j=0; j<this->Nb; j++)
+        for (int j=0; j<4; j++)
         {
             printf("%02x",state[4*j+i]);
         }
     }
     printf("\n");
 #else
-    for (int j=0; j<this->Nb; j++)
+    for (int j=0; j<4; j++)
     {
         for (int i=0; i<4; i++)
         {
@@ -383,22 +322,22 @@ void AES::print_state(uint8_t *state)
 
 void AES::copy_in(uint8_t *state,uint8_t *in)
 {
-    for (int j=0; j<this->Nb; j++)
+    for (int j=0; j<4; j++)
     {
         for (int i=0; i<4; i++)
         {
-            state[i*this->Nb+j] = in[4*j+i];
+            state[i*4+j] = in[4*j+i];
         }
     }
 }
 
 void AES::copy_out(uint8_t *state,uint8_t *out)
 {
-    for (int j=0; j<this->Nb; j++)
+    for (int j=0; j<4; j++)
     {
         for (int i=0; i<4; i++)
         {
-            out[4*j+i] = state[i*this->Nb+j];
+            out[4*j+i] = state[i*4+j];
         }
     }
 }
@@ -407,7 +346,7 @@ void AES::KeyExpansion()
 {
     uint32_t temp;
 
-    for(int i=0; i<this->Nk; i++)
+    for(int i=0; i<this->NK; i++)
     {
         this->Word[i] = (this->Key[4*i] << 24) |
                   (this->Key[4*i+1] << 16) |
@@ -418,26 +357,26 @@ void AES::KeyExpansion()
 #endif
     }
 
-    for(int i=this->Nk; i<(this->Nb*(this->Nr+1)); i++)
+    for(int i=this->NK; i<(4*(this->NR+1)); i++)
     {
         temp = this->Word[i-1];
 #ifdef DEBUG
         printf("%08X\t",temp);
 #endif
-        if ((i % this->Nk) == 0)
+        if ((i % this->NK) == 0)
         {
-          temp = SubWord(RotWord(temp)) ^ (Rcon[i/this->Nk] << 24);
+          temp = SubWord(RotWord(temp)) ^ (Rcon[i/this->NK] << 24);
 #ifdef DEBUG
-          printf("%08X\t",(Rcon[i/this->Nk] << 24));
+          printf("%08X\t",(Rcon[i/this->NK] << 24));
 #endif
         }
-        else if (this->Nk>6 && (i%this->Nk) == 4)
+        else if (this->NK>6 && (i%this->NK) == 4)
         {
           temp = SubWord(temp);
         }
-        this->Word[i] = this->Word[i-this->Nk] ^ temp;
+        this->Word[i] = this->Word[i-this->NK] ^ temp;
 #ifdef DEBUG
-        printf("%08X\t",this->Word[i-this->Nk]);
+        printf("%08X\t",this->Word[i-this->NK]);
         printf("%08X\n",this->Word[i]);
 #endif
     }
@@ -448,14 +387,14 @@ void AES::KeyExpansion()
 
 void AES::Cipher(uint8_t *in,uint8_t *out)
 {
-    uint8_t *state = (uint8_t *) malloc(4*this->Nb*sizeof(uint8_t));
+    uint8_t *state = (uint8_t *) malloc(16*sizeof(uint8_t));
 
     copy_in(state,in);
 
     print_state(state);
     AddRoundkey(state,0);
 
-    for(int round=1; round<this->Nr; round++)
+    for(int round=1; round<this->NR; round++)
     {
         print_state(state);
         SubBytes(state);
@@ -472,7 +411,7 @@ void AES::Cipher(uint8_t *in,uint8_t *out)
     print_state(state);
     ShiftRows(state);
     print_state(state);
-    AddRoundkey(state,this->Nr);
+    AddRoundkey(state,this->NR);
 
     print_state(state);
     copy_out(state,out);
@@ -483,14 +422,14 @@ void AES::Cipher(uint8_t *in,uint8_t *out)
 
 void AES::InvCipher(uint8_t *in,uint8_t *out)
 {
-    uint8_t *state = (uint8_t *) malloc(4*this->Nb*sizeof(uint8_t));
+    uint8_t *state = (uint8_t *) malloc(16*sizeof(uint8_t));
 
     copy_in(state,in);
 
     print_state(state);
-    AddRoundkey(state,this->Nr);
+    AddRoundkey(state,this->NR);
 
-    for(int round=this->Nr-1; round>0; round--)
+    for(int round=this->NR-1; round>0; round--)
     {
         print_state(state);
         InvShiftRows(state);
