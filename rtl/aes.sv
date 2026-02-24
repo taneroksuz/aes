@@ -1,122 +1,101 @@
-
-`include "aes_config.svh"
-
 module aes #(
-  parameter KEY_BITS = `AES_KEY_BITS,
-  parameter NK       = `AES_NK,
-  parameter NR       = `AES_NR
+  parameter KEY_BITS = 128,
+  parameter NK       = (KEY_BITS == 256) ? 8  :
+                       (KEY_BITS == 192) ? 6  : 4,
+  parameter NR       = (KEY_BITS == 256) ? 14  :
+                       (KEY_BITS == 192) ? 12 : 10
 )
 (
   input  logic rst,
   input  logic clk,
   input  logic start,
   input  logic encrypt,
-  input  logic [KEY_BITS-1:0] key,
+  input  logic [KEY_BITS-1:0] key_in,
   input  logic [127:0] data_in,
   output logic [127:0] data_out,
-  output logic done,
-  output logic busy,
-  output logic error,
   output logic ready
 );
   timeunit 1ns;
   timeprecision 1ps;
 
-  logic [31:0] kexp [0:(4*(NR+1)-1)];
+  localparam logic [7 : 0] sbox [0:255] ='{
+    8'H63,8'H7C,8'H77,8'H7B,8'HF2,8'H6B,8'H6F,8'HC5,8'H30,8'H01,8'H67,8'H2B,8'HFE,8'HD7,8'HAB,8'H76,
+    8'HCA,8'H82,8'HC9,8'H7D,8'HFA,8'H59,8'H47,8'HF0,8'HAD,8'HD4,8'HA2,8'HAF,8'H9C,8'HA4,8'H72,8'HC0,
+    8'HB7,8'HFD,8'H93,8'H26,8'H36,8'H3F,8'HF7,8'HCC,8'H34,8'HA5,8'HE5,8'HF1,8'H71,8'HD8,8'H31,8'H15,
+    8'H04,8'HC7,8'H23,8'HC3,8'H18,8'H96,8'H05,8'H9A,8'H07,8'H12,8'H80,8'HE2,8'HEB,8'H27,8'HB2,8'H75,
+    8'H09,8'H83,8'H2C,8'H1A,8'H1B,8'H6E,8'H5A,8'HA0,8'H52,8'H3B,8'HD6,8'HB3,8'H29,8'HE3,8'H2F,8'H84,
+    8'H53,8'HD1,8'H00,8'HED,8'H20,8'HFC,8'HB1,8'H5B,8'H6A,8'HCB,8'HBE,8'H39,8'H4A,8'H4C,8'H58,8'HCF,
+    8'HD0,8'HEF,8'HAA,8'HFB,8'H43,8'H4D,8'H33,8'H85,8'H45,8'HF9,8'H02,8'H7F,8'H50,8'H3C,8'H9F,8'HA8,
+    8'H51,8'HA3,8'H40,8'H8F,8'H92,8'H9D,8'H38,8'HF5,8'HBC,8'HB6,8'HDA,8'H21,8'H10,8'HFF,8'HF3,8'HD2,
+    8'HCD,8'H0C,8'H13,8'HEC,8'H5F,8'H97,8'H44,8'H17,8'HC4,8'HA7,8'H7E,8'H3D,8'H64,8'H5D,8'H19,8'H73,
+    8'H60,8'H81,8'H4F,8'HDC,8'H22,8'H2A,8'H90,8'H88,8'H46,8'HEE,8'HB8,8'H14,8'HDE,8'H5E,8'H0B,8'HDB,
+    8'HE0,8'H32,8'H3A,8'H0A,8'H49,8'H06,8'H24,8'H5C,8'HC2,8'HD3,8'HAC,8'H62,8'H91,8'H95,8'HE4,8'H79,
+    8'HE7,8'HC8,8'H37,8'H6D,8'H8D,8'HD5,8'H4E,8'HA9,8'H6C,8'H56,8'HF4,8'HEA,8'H65,8'H7A,8'HAE,8'H08,
+    8'HBA,8'H78,8'H25,8'H2E,8'H1C,8'HA6,8'HB4,8'HC6,8'HE8,8'HDD,8'H74,8'H1F,8'H4B,8'HBD,8'H8B,8'H8A,
+    8'H70,8'H3E,8'HB5,8'H66,8'H48,8'H03,8'HF6,8'H0E,8'H61,8'H35,8'H57,8'HB9,8'H86,8'HC1,8'H1D,8'H9E,
+    8'HE1,8'HF8,8'H98,8'H11,8'H69,8'HD9,8'H8E,8'H94,8'H9B,8'H1E,8'H87,8'HE9,8'HCE,8'H55,8'H28,8'HDF,
+    8'H8C,8'HA1,8'H89,8'H0D,8'HBF,8'HE6,8'H42,8'H68,8'H41,8'H99,8'H2D,8'H0F,8'HB0,8'H54,8'HBB,8'H16
+  };
 
-  logic [7 : 0] sbox [0:255];
-  logic [7 : 0] ibox [0:255];
-  logic [7 : 0] exp3 [0:255];
-  logic [7 : 0] ln3 [0:255];
-  logic [7 : 0] rcon [0:15];
+  localparam logic [7 : 0] ibox [0:255] ='{
+    8'H52,8'H09,8'H6A,8'HD5,8'H30,8'H36,8'HA5,8'H38,8'HBF,8'H40,8'HA3,8'H9E,8'H81,8'HF3,8'HD7,8'HFB,
+    8'H7C,8'HE3,8'H39,8'H82,8'H9B,8'H2F,8'HFF,8'H87,8'H34,8'H8E,8'H43,8'H44,8'HC4,8'HDE,8'HE9,8'HCB,
+    8'H54,8'H7B,8'H94,8'H32,8'HA6,8'HC2,8'H23,8'H3D,8'HEE,8'H4C,8'H95,8'H0B,8'H42,8'HFA,8'HC3,8'H4E,
+    8'H08,8'H2E,8'HA1,8'H66,8'H28,8'HD9,8'H24,8'HB2,8'H76,8'H5B,8'HA2,8'H49,8'H6D,8'H8B,8'HD1,8'H25,
+    8'H72,8'HF8,8'HF6,8'H64,8'H86,8'H68,8'H98,8'H16,8'HD4,8'HA4,8'H5C,8'HCC,8'H5D,8'H65,8'HB6,8'H92,
+    8'H6C,8'H70,8'H48,8'H50,8'HFD,8'HED,8'HB9,8'HDA,8'H5E,8'H15,8'H46,8'H57,8'HA7,8'H8D,8'H9D,8'H84,
+    8'H90,8'HD8,8'HAB,8'H00,8'H8C,8'HBC,8'HD3,8'H0A,8'HF7,8'HE4,8'H58,8'H05,8'HB8,8'HB3,8'H45,8'H06,
+    8'HD0,8'H2C,8'H1E,8'H8F,8'HCA,8'H3F,8'H0F,8'H02,8'HC1,8'HAF,8'HBD,8'H03,8'H01,8'H13,8'H8A,8'H6B,
+    8'H3A,8'H91,8'H11,8'H41,8'H4F,8'H67,8'HDC,8'HEA,8'H97,8'HF2,8'HCF,8'HCE,8'HF0,8'HB4,8'HE6,8'H73,
+    8'H96,8'HAC,8'H74,8'H22,8'HE7,8'HAD,8'H35,8'H85,8'HE2,8'HF9,8'H37,8'HE8,8'H1C,8'H75,8'HDF,8'H6E,
+    8'H47,8'HF1,8'H1A,8'H71,8'H1D,8'H29,8'HC5,8'H89,8'H6F,8'HB7,8'H62,8'H0E,8'HAA,8'H18,8'HBE,8'H1B,
+    8'HFC,8'H56,8'H3E,8'H4B,8'HC6,8'HD2,8'H79,8'H20,8'H9A,8'HDB,8'HC0,8'HFE,8'H78,8'HCD,8'H5A,8'HF4,
+    8'H1F,8'HDD,8'HA8,8'H33,8'H88,8'H07,8'HC7,8'H31,8'HB1,8'H12,8'H10,8'H59,8'H27,8'H80,8'HEC,8'H5F,
+    8'H60,8'H51,8'H7F,8'HA9,8'H19,8'HB5,8'H4A,8'H0D,8'H2D,8'HE5,8'H7A,8'H9F,8'H93,8'HC9,8'H9C,8'HEF,
+    8'HA0,8'HE0,8'H3B,8'H4D,8'HAE,8'H2A,8'HF5,8'HB0,8'HC8,8'HEB,8'HBB,8'H3C,8'H83,8'H53,8'H99,8'H61,
+    8'H17,8'H2B,8'H04,8'H7E,8'HBA,8'H77,8'HD6,8'H26,8'HE1,8'H69,8'H14,8'H63,8'H55,8'H21,8'H0C,8'H7D
+  };
 
-  logic [7:0] key_array[0:(4*NK-1)];
-  logic [7:0] data_array[0:(15)];
-  logic [7:0] cipher_array[0:(15)];
-  logic [7:0] icipher_array[0:(15)];
+  localparam logic [7 : 0] exp3 [0:255] ='{
+    8'H01,8'H03,8'H05,8'H0F,8'H11,8'H33,8'H55,8'HFF,8'H1A,8'H2E,8'H72,8'H96,8'HA1,8'HF8,8'H13,8'H35,
+    8'H5F,8'HE1,8'H38,8'H48,8'HD8,8'H73,8'H95,8'HA4,8'HF7,8'H02,8'H06,8'H0A,8'H1E,8'H22,8'H66,8'HAA,
+    8'HE5,8'H34,8'H5C,8'HE4,8'H37,8'H59,8'HEB,8'H26,8'H6A,8'HBE,8'HD9,8'H70,8'H90,8'HAB,8'HE6,8'H31,
+    8'H53,8'HF5,8'H04,8'H0C,8'H14,8'H3C,8'H44,8'HCC,8'H4F,8'HD1,8'H68,8'HB8,8'HD3,8'H6E,8'HB2,8'HCD,
+    8'H4C,8'HD4,8'H67,8'HA9,8'HE0,8'H3B,8'H4D,8'HD7,8'H62,8'HA6,8'HF1,8'H08,8'H18,8'H28,8'H78,8'H88,
+    8'H83,8'H9E,8'HB9,8'HD0,8'H6B,8'HBD,8'HDC,8'H7F,8'H81,8'H98,8'HB3,8'HCE,8'H49,8'HDB,8'H76,8'H9A,
+    8'HB5,8'HC4,8'H57,8'HF9,8'H10,8'H30,8'H50,8'HF0,8'H0B,8'H1D,8'H27,8'H69,8'HBB,8'HD6,8'H61,8'HA3,
+    8'HFE,8'H19,8'H2B,8'H7D,8'H87,8'H92,8'HAD,8'HEC,8'H2F,8'H71,8'H93,8'HAE,8'HE9,8'H20,8'H60,8'HA0,
+    8'HFB,8'H16,8'H3A,8'H4E,8'HD2,8'H6D,8'HB7,8'HC2,8'H5D,8'HE7,8'H32,8'H56,8'HFA,8'H15,8'H3F,8'H41,
+    8'HC3,8'H5E,8'HE2,8'H3D,8'H47,8'HC9,8'H40,8'HC0,8'H5B,8'HED,8'H2C,8'H74,8'H9C,8'HBF,8'HDA,8'H75,
+    8'H9F,8'HBA,8'HD5,8'H64,8'HAC,8'HEF,8'H2A,8'H7E,8'H82,8'H9D,8'HBC,8'HDF,8'H7A,8'H8E,8'H89,8'H80,
+    8'H9B,8'HB6,8'HC1,8'H58,8'HE8,8'H23,8'H65,8'HAF,8'HEA,8'H25,8'H6F,8'HB1,8'HC8,8'H43,8'HC5,8'H54,
+    8'HFC,8'H1F,8'H21,8'H63,8'HA5,8'HF4,8'H07,8'H09,8'H1B,8'H2D,8'H77,8'H99,8'HB0,8'HCB,8'H46,8'HCA,
+    8'H45,8'HCF,8'H4A,8'HDE,8'H79,8'H8B,8'H86,8'H91,8'HA8,8'HE3,8'H3E,8'H42,8'HC6,8'H51,8'HF3,8'H0E,
+    8'H12,8'H36,8'H5A,8'HEE,8'H29,8'H7B,8'H8D,8'H8C,8'H8F,8'H8A,8'H85,8'H94,8'HA7,8'HF2,8'H0D,8'H17,
+    8'H39,8'H4B,8'HDD,8'H7C,8'H84,8'H97,8'HA2,8'HFD,8'H1C,8'H24,8'H6C,8'HB4,8'HC7,8'H52,8'HF6,8'H01
+  };
 
-  logic [127:0] cipher_data;
-  logic [127:0] icipher_data;
+  localparam logic [7 : 0] ln3 [0:255] ='{
+    8'H00,8'H00,8'H19,8'H01,8'H32,8'H02,8'H1A,8'HC6,8'H4B,8'HC7,8'H1B,8'H68,8'H33,8'HEE,8'HDF,8'H03,
+    8'H64,8'H04,8'HE0,8'H0E,8'H34,8'H8D,8'H81,8'HEF,8'H4C,8'H71,8'H08,8'HC8,8'HF8,8'H69,8'H1C,8'HC1,
+    8'H7D,8'HC2,8'H1D,8'HB5,8'HF9,8'HB9,8'H27,8'H6A,8'H4D,8'HE4,8'HA6,8'H72,8'H9A,8'HC9,8'H09,8'H78,
+    8'H65,8'H2F,8'H8A,8'H05,8'H21,8'H0F,8'HE1,8'H24,8'H12,8'HF0,8'H82,8'H45,8'H35,8'H93,8'HDA,8'H8E,
+    8'H96,8'H8F,8'HDB,8'HBD,8'H36,8'HD0,8'HCE,8'H94,8'H13,8'H5C,8'HD2,8'HF1,8'H40,8'H46,8'H83,8'H38,
+    8'H66,8'HDD,8'HFD,8'H30,8'HBF,8'H06,8'H8B,8'H62,8'HB3,8'H25,8'HE2,8'H98,8'H22,8'H88,8'H91,8'H10,
+    8'H7E,8'H6E,8'H48,8'HC3,8'HA3,8'HB6,8'H1E,8'H42,8'H3A,8'H6B,8'H28,8'H54,8'HFA,8'H85,8'H3D,8'HBA,
+    8'H2B,8'H79,8'H0A,8'H15,8'H9B,8'H9F,8'H5E,8'HCA,8'H4E,8'HD4,8'HAC,8'HE5,8'HF3,8'H73,8'HA7,8'H57,
+    8'HAF,8'H58,8'HA8,8'H50,8'HF4,8'HEA,8'HD6,8'H74,8'H4F,8'HAE,8'HE9,8'HD5,8'HE7,8'HE6,8'HAD,8'HE8,
+    8'H2C,8'HD7,8'H75,8'H7A,8'HEB,8'H16,8'H0B,8'HF5,8'H59,8'HCB,8'H5F,8'HB0,8'H9C,8'HA9,8'H51,8'HA0,
+    8'H7F,8'H0C,8'HF6,8'H6F,8'H17,8'HC4,8'H49,8'HEC,8'HD8,8'H43,8'H1F,8'H2D,8'HA4,8'H76,8'H7B,8'HB7,
+    8'HCC,8'HBB,8'H3E,8'H5A,8'HFB,8'H60,8'HB1,8'H86,8'H3B,8'H52,8'HA1,8'H6C,8'HAA,8'H55,8'H29,8'H9D,
+    8'H97,8'HB2,8'H87,8'H90,8'H61,8'HBE,8'HDC,8'HFC,8'HBC,8'H95,8'HCF,8'HCD,8'H37,8'H3F,8'H5B,8'HD1,
+    8'H53,8'H39,8'H84,8'H3C,8'H41,8'HA2,8'H6D,8'H47,8'H14,8'H2A,8'H9E,8'H5D,8'H56,8'HF2,8'HD3,8'HAB,
+    8'H44,8'H11,8'H92,8'HD9,8'H23,8'H20,8'H2E,8'H89,8'HB4,8'H7C,8'HB8,8'H26,8'H77,8'H99,8'HE3,8'HA5,
+    8'H67,8'H4A,8'HED,8'HDE,8'HC5,8'H31,8'HFE,8'H18,8'H0D,8'H63,8'H8C,8'H80,8'HC0,8'HF7,8'H70,8'H07
+  };
 
-  logic [0 : 0] kexp_enable;
-  logic [0 : 0] cipher_enable;
-  logic [0 : 0] icipher_enable;
-
-  logic [0 : 0] kexp_ready;
-  logic [0 : 0] cipher_ready;
-  logic [0 : 0] icipher_ready;
-
-  aes_array aes_array_comp
-  (
-    .SBox (sbox),
-    .IBox (ibox),
-    .EXP3 (exp3),
-    .LN3 (ln3),
-    .RCon (rcon)
-  );
-
-  aes_xkey aes_xkey_comp
-  (
-    .key_in (key),
-    .key_out (key_array)
-  );
-
-  aes_xdata aes_xdata_comp
-  (
-    .data_in (data_in),
-    .data_out (data_array)
-  );
-
-  aes_kexp aes_kexp_comp
-  (
-    .rst (rst),
-    .clk (clk),
-    .Key (key_array),
-    .RCon (rcon),
-    .SBox (sbox),
-    .Enable (kexp_enable),
-    .KExp (kexp),
-    .Ready_out (kexp_ready)
-  );
-
-  aes_cipher aes_cipher_comp
-  (
-    .rst (rst),
-    .clk (clk),
-    .SBox (sbox),
-    .EXP3 (exp3),
-    .LN3 (ln3),
-    .KExp (kexp),
-    .Data_in (data_array),
-    .Enable (cipher_enable),
-    .Data_out (cipher_array),
-    .Ready_out (cipher_ready)
-  );
-
-  aes_icipher aes_icipher_comp
-  (
-    .rst (rst),
-    .clk (clk),
-    .IBox (ibox),
-    .EXP3 (exp3),
-    .LN3 (ln3),
-    .KExp (kexp),
-    .Data_in (data_array),
-    .Enable (icipher_enable),
-    .Data_out (icipher_array),
-    .Ready_out (icipher_ready)
-  );
-
-  aes_cdata aes_cdata_cipher_comp
-  (
-    .data_in (cipher_array),
-    .data_out (cipher_data)
-  );
-
-  aes_cdata aes_cdata_icipher_comp
-  (
-    .data_in (icipher_array),
-    .data_out (icipher_data)
-  );
+  localparam logic [7 : 0] rcon [0:15] ='{
+    8'H00,8'H01,8'H02,8'H04,8'H08,8'H10,8'H20,8'H40,8'H80,8'H1B,8'H36,8'H6C,8'HD8,8'HAB,8'H4D,8'H9A
+  };
 
 endmodule
