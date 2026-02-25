@@ -11,7 +11,7 @@ cp -rf $BASEDIR/out/* $BASEDIR/sim/work/
 cd $BASEDIR/sim/work
 
 start=`date +%s`
-if [ "$WAVE" = 'on' ]
+if [ "$DUMP" = '1' ]
 then
   $VERILATOR --binary -Wno-UNOPTFLAT --trace -trace-max-array 128 --trace-structs -f $BASEDIR/sim/files.f --top-module aes_tb -I$BASEDIR/rtl 2>&1 > /dev/null
   make -s -j -C obj_dir/ -f Vaes_tb.mk Vaes_tb 2>&1 > /dev/null

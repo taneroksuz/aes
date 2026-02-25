@@ -84,13 +84,13 @@ int main(int argc, char *argv[])
     {
         NK = 8;
     }
-    int NW = atoi(argv[2])/16;
+    int NW = atoi(argv[2]);
 
     uint8_t *key = (uint8_t *) malloc(4*NK*sizeof(uint8_t));
-    uint8_t *dat = (uint8_t *) malloc(16*sizeof(uint8_t));
-    uint8_t *enc = (uint8_t *) malloc(16*sizeof(uint8_t));
-    uint8_t *out = (uint8_t *) malloc(16*sizeof(uint8_t));
-    uint8_t *res = (uint8_t *) malloc(16*sizeof(uint8_t));
+    uint8_t *dat = (uint8_t *) malloc(NW*sizeof(uint8_t));
+    uint8_t *enc = (uint8_t *) malloc(NW*sizeof(uint8_t));
+    uint8_t *out = (uint8_t *) malloc(NW*sizeof(uint8_t));
+    uint8_t *res = (uint8_t *) malloc(NW*sizeof(uint8_t));
 
     string key_str;
     string data_str;
@@ -101,17 +101,17 @@ int main(int argc, char *argv[])
 
     AES *aes = new AES(NK,key);
 
-    for (int i=0; i<NW; i++)
-    {
-        getline(data_file,data_str);
-        getline(encrypt_file,encrypt_str);
-        get(data_str,dat,16);
-        aes->Cipher(dat,out);
-        aes->InvCipher(out,res);
-        get(encrypt_str,enc,16);
-        compare(out,enc,16,1);
-        compare(res,dat,16,0);
-    }
+    getline(data_file,data_str);
+    getline(encrypt_file,encrypt_str);
+
+    get(data_str,dat,NW);
+    for (int i=0; i<NW; i=i+16)
+        aes->Cipher(dat+i,out+i);
+    for (int i=0; i<NW; i=i+16)
+        aes->InvCipher(out+i,res+i);
+    get(encrypt_str,enc,NW);
+    compare(out,enc,NW,1);
+    compare(res,dat,NW,0);
 
     return 0;
 

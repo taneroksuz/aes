@@ -1247,24 +1247,58 @@ module aes #(
   endfunction
 
   state_t s;
-  key_t   k;
+  key_t k;
+  int state;
+  logic inverse;
 
-  always_comb begin
-    ready = start;
-    k = key_expand(key_in);
-    ///////////////////////
-    if (encrypt == 1) begin
-      s = state_in(data_in);
-      s = add_round_key(s, k[0]);
-      for (int r = 1; r < NR; r++) s = aes_round(s, k[r]);
-      s = aes_final_round(s, k[NR]);
-      data_out = state_out(s);
+  always_ff @(posedge clk) begin
+    if (rst == 0) begin
+      data_out <= 0;
+      ready <= 0;
+      state <= 0;
+      inverse <= 0;
     end else begin
-      s = state_in(data_in);
-      s = add_round_key(s, k[NR]);
-      for (int r = NR - 1; r >= 1; r--) s = aes_inv_round(s, k[r]);
-      s = aes_inv_final_round(s, k[0]);
-      data_out = state_out(s);
+      data_out <= 0;
+      ready <= 0;
+      case (state)
+        0: begin
+          if (start == 1) begin
+            state <= 1;
+            inverse <= ~encrypt;
+            s <= state_in(data_in);
+            k <= key_expand(key_in);
+          end
+        end
+        1: begin
+          state <= 2;
+          if (inverse == 0) begin
+            s <= add_round_key(s, k[0]);
+          end else begin
+            s <= add_round_key(s, k[NR]);
+          end
+        end
+        NR + 1: begin
+          state <= NR + 2;
+          if (inverse == 0) begin
+            s <= aes_final_round(s, k[NR]);
+          end else begin
+            s <= aes_inv_final_round(s, k[0]);
+          end
+        end
+        NR + 2: begin
+          state <= 0;
+          data_out <= state_out(s);
+          ready <= 1;
+        end
+        default: begin
+          state <= state + 1;
+          if (inverse == 0) begin
+            s <= aes_round(s, k[state-1]);
+          end else begin
+            s <= aes_inv_round(s, k[NR+1-state]);
+          end
+        end
+      endcase
     end
   end
 

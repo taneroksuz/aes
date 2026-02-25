@@ -3,7 +3,7 @@
 #  aes_ecb_demo.sh
 #  Install OpenSSL, generate a random key + plaintext, encrypt with AES-ECB
 #
-#  Usage: ./aes_ecb_demo.sh [KEY_BITS] [PLAINTEXT_BYTES]
+#  Usage: ./generate.sh [KEY_BITS] [PLAINTEXT_BYTES]
 # =============================================================================
 
 set -euo pipefail
