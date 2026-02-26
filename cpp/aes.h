@@ -11,12 +11,11 @@ class AES
 {
     private:
 
-        int NK; // 4,6,8
-        int NR; // 10,12,14
+        int NK;
+        int NR;
 
         uint8_t *Key;
         uint32_t *Word;
-        // uint32_t *Rcon;
 
         int NumRounds(int NK);
 
