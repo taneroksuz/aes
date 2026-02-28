@@ -1186,37 +1186,27 @@ module aes #(
     return out;
   endfunction
 
-  function automatic state_t aes_round(input state_t s, input logic [127:0] round_key);
+  function automatic state_t aes_round(input state_t s, input logic ready,
+                                       input logic [127:0] round_key);
     state_t tmp;
     tmp = sub_bytes(s);
     tmp = shift_rows(tmp);
-    tmp = mix_columns(tmp);
+    if (ready == 0) begin
+      tmp = mix_columns(tmp);
+    end
     tmp = add_round_key(tmp, round_key);
     return tmp;
   endfunction
 
-  function automatic state_t aes_inv_round(input state_t s, input logic [127:0] round_key);
+  function automatic state_t aes_inv_round(input state_t s, input logic ready,
+                                           input logic [127:0] round_key);
     state_t tmp;
     tmp = inv_shift_rows(s);
     tmp = inv_sub_bytes(tmp);
     tmp = add_round_key(tmp, round_key);
-    tmp = inv_mix_columns(tmp);
-    return tmp;
-  endfunction
-
-  function automatic state_t aes_final_round(input state_t s, input logic [127:0] round_key);
-    state_t tmp;
-    tmp = sub_bytes(s);
-    tmp = shift_rows(tmp);
-    tmp = add_round_key(tmp, round_key);
-    return tmp;
-  endfunction
-
-  function automatic state_t aes_inv_final_round(input state_t s, input logic [127:0] round_key);
-    state_t tmp;
-    tmp = inv_shift_rows(s);
-    tmp = inv_sub_bytes(tmp);
-    tmp = add_round_key(tmp, round_key);
+    if (ready == 0) begin
+      tmp = inv_mix_columns(tmp);
+    end
     return tmp;
   endfunction
 
@@ -1246,59 +1236,62 @@ module aes #(
     return k;
   endfunction
 
-  state_t s;
-  key_t k;
-  int state;
-  logic inverse;
+  typedef struct packed {
+    logic encrypt;
+    logic ready;
+    int state;
+    state_t s;
+    key_t k;
+  } reg_type;
+
+  reg_type init_reg = '{encrypt : 0, ready : 0, state : 0, s : '0, k : '0};
+
+  reg_type r, rin;
+  reg_type v;
+
+  always_comb begin
+
+    v = r;
+
+    v.ready = 0;
+
+    case (r.state)
+      0: begin
+        if (start == 1) begin
+          v.state = 1;
+          v.encrypt = encrypt;
+          v.s = state_in(data_in);
+          v.k = key_expand(key_in);
+          v.s = add_round_key(v.s, (v.encrypt == 0) ? v.k[NR] : v.k[0]);
+        end
+      end
+      default: begin
+        if (r.state == NR) begin
+          v.ready = 1;
+          v.state = 0;
+        end else begin
+          v.state = v.state + 1;
+        end
+        if (v.encrypt == 0) begin
+          v.s = aes_inv_round(v.s, v.ready, v.k[NR-r.state]);
+        end else begin
+          v.s = aes_round(v.s, v.ready, v.k[r.state]);
+        end
+      end
+    endcase
+
+    data_out = state_out(v.s);
+    ready = v.ready;
+
+    rin = v;
+
+  end
 
   always_ff @(posedge clk) begin
     if (rst == 0) begin
-      data_out <= 0;
-      ready <= 0;
-      state <= 0;
-      inverse <= 0;
+      r <= init_reg;
     end else begin
-      data_out <= 0;
-      ready <= 0;
-      case (state)
-        0: begin
-          if (start == 1) begin
-            state <= 1;
-            inverse <= ~encrypt;
-            s <= state_in(data_in);
-            k <= key_expand(key_in);
-          end
-        end
-        1: begin
-          state <= 2;
-          if (inverse == 0) begin
-            s <= add_round_key(s, k[0]);
-          end else begin
-            s <= add_round_key(s, k[NR]);
-          end
-        end
-        NR + 1: begin
-          state <= NR + 2;
-          if (inverse == 0) begin
-            s <= aes_final_round(s, k[NR]);
-          end else begin
-            s <= aes_inv_final_round(s, k[0]);
-          end
-        end
-        NR + 2: begin
-          state <= 0;
-          data_out <= state_out(s);
-          ready <= 1;
-        end
-        default: begin
-          state <= state + 1;
-          if (inverse == 0) begin
-            s <= aes_round(s, k[state-1]);
-          end else begin
-            s <= aes_inv_round(s, k[NR+1-state]);
-          end
-        end
-      endcase
+      r <= rin;
     end
   end
 

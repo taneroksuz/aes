@@ -6,7 +6,7 @@ This algorithm is implemented in finite state machine.
 
 | Key Bits   | 128  | 192  | 256  |
 |:-----------|:----:|:----:|:----:|
-| LUT        | 7802 | 7476 | 8631 |
-| FF         | 1715 | 1966 | 2231 |
+| LUT        | 7886 | 7423 | 8534 |
+| FF         | 1575 | 1825 | 2088 |
 | BRAM       | 16   | 16   | 16   |
 
