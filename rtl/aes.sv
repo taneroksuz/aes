@@ -1131,23 +1131,43 @@ module aes #(
 
   function automatic state_t shift_rows(input state_t s);
     state_t out;
-    for (int col = 0; col < 4; col++) begin
-      out[0][col] = s[0][(col)%4];
-      out[1][col] = s[1][(col+1)%4];
-      out[2][col] = s[2][(col+2)%4];
-      out[3][col] = s[3][(col+3)%4];
-    end
+    out[0][0] = s[0][0];
+    out[0][1] = s[0][1];
+    out[0][2] = s[0][2];
+    out[0][3] = s[0][3];
+    out[1][0] = s[1][1];
+    out[1][1] = s[1][2];
+    out[1][2] = s[1][3];
+    out[1][3] = s[1][0];
+    out[2][0] = s[2][2];
+    out[2][1] = s[2][3];
+    out[2][2] = s[2][0];
+    out[2][3] = s[2][1];
+    out[3][0] = s[3][3];
+    out[3][1] = s[3][0];
+    out[3][2] = s[3][1];
+    out[3][3] = s[3][2];
     return out;
   endfunction
 
   function automatic state_t inv_shift_rows(input state_t s);
     state_t out;
-    for (int col = 0; col < 4; col++) begin
-      out[0][col] = s[0][(col)%4];
-      out[1][col] = s[1][(col+3)%4];
-      out[2][col] = s[2][(col+2)%4];
-      out[3][col] = s[3][(col+1)%4];
-    end
+    out[0][0] = s[0][0];
+    out[0][1] = s[0][1];
+    out[0][2] = s[0][2];
+    out[0][3] = s[0][3];
+    out[1][0] = s[1][3];
+    out[1][1] = s[1][0];
+    out[1][2] = s[1][1];
+    out[1][3] = s[1][2];
+    out[2][0] = s[2][2];
+    out[2][1] = s[2][3];
+    out[2][2] = s[2][0];
+    out[2][3] = s[2][1];
+    out[3][0] = s[3][1];
+    out[3][1] = s[3][2];
+    out[3][2] = s[3][3];
+    out[3][3] = s[3][0];
     return out;
   endfunction
 
@@ -1222,15 +1242,25 @@ module aes #(
   function automatic key_t key_expand(input logic [KEY_BITS-1:0] key);
     logic [31:0] w[0:4*(NR+1)-1];
     key_t k;
+    int mod_cnt;
+    int rcon_idx;
     for (int i = 0; i < NK; i++) begin
       w[i] = key[(NK*32-1)-i*32-:32];
     end
+    mod_cnt  = 0;
+    rcon_idx = 1;
     for (int i = NK; i < 4 * (NR + 1); i++) begin
       logic [31:0] tmp;
       tmp = w[i-1];
-      if (i % NK == 0) tmp = sub_word(rot_word(tmp)) ^ {rcon(i / NK), 24'h000000};
-      else if (NK > 6 && i % NK == 4) tmp = sub_word(tmp);
+      if (mod_cnt == 0) begin
+        tmp = sub_word(rot_word(tmp)) ^ {rcon(rcon_idx), 24'h000000};
+        rcon_idx++;
+      end else if (NK > 6 && mod_cnt == 4) begin
+        tmp = sub_word(tmp);
+      end
       w[i] = w[i-NK] ^ tmp;
+      if (mod_cnt == NK - 1) mod_cnt = 0;
+      else mod_cnt++;
     end
     for (int rnd = 0; rnd < (NR + 1); rnd++)
     k[rnd] = {w[rnd*4], w[rnd*4+1], w[rnd*4+2], w[rnd*4+3]};
