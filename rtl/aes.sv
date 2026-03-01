@@ -1,7 +1,5 @@
 module aes #(
-    parameter KEY_BITS = 128,
-    parameter NK       = KEY_BITS / 32,
-    parameter NR       = (KEY_BITS == 256) ? 14 : (KEY_BITS == 192) ? 12 : 10
+    parameter KEY_BITS = 128
 ) (
     input logic rst,
     input logic clk,
@@ -13,6 +11,9 @@ module aes #(
     output logic ready
 );
   timeunit 1ns; timeprecision 1ps;
+
+  localparam NK = KEY_BITS / 32;
+  localparam NR = (KEY_BITS == 256) ? 14 : (KEY_BITS == 192) ? 12 : 10;
 
   typedef logic [3:0][3:0][7:0] state_t;
   typedef logic [NR:0][127:0] key_t;
