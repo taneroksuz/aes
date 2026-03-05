@@ -115,29 +115,6 @@ int AES::NumRounds(int NK)
     }
 }
 
-uint8_t AES::RC(int i)
-{
-    if (i == 1)
-    {
-        return 1;
-    }
-    else if (i > 1)
-    {
-        if (RC(i-1) < 0x80)
-        {
-            return 2*RC(i-1);
-        }
-        else
-        {
-            return (2*RC(i-1) ^ 0x11B);
-        }
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 uint8_t AES::GaloisMul(uint8_t a,uint8_t b)
 {
     if(a && b)
@@ -148,13 +125,6 @@ uint8_t AES::GaloisMul(uint8_t a,uint8_t b)
     {
         return 0;
     }
-}
-
-uint32_t AES::RoundConstant(int i)
-{
-    uint8_t rc = RC(i);
-    uint32_t temp = (rc << 24);
-    return temp;
 }
 
 void AES::AddRoundkey(uint8_t *state,int round)

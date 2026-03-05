@@ -19,10 +19,6 @@ class AES
 
         int NumRounds(int NK);
 
-        uint32_t RoundConstant(int i);
-
-        uint8_t RC(int i);
-
         uint8_t GaloisMul(uint8_t a,uint8_t b);
 
         void AddRoundkey(uint8_t *state,int round);
